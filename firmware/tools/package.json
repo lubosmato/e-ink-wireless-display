@@ -1,0 +1,14 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "async-mqtt": "^2.6.2",
+    "capture-website": "^2.3.0",
+    "imagemin": "^8.0.1",
+    "imagemin-pngquant": "^9.0.2",
+    "jimp": "^0.16.1"
+  },
+  "type": "module"
+}

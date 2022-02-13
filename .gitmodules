@@ -1,0 +1,3 @@
+[submodule "firmware/components/essentials"]
+	path = firmware/components/essentials
+	url = https://github.com/lubosmato/esp32-essentials
