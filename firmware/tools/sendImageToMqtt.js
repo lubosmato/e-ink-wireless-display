@@ -1,7 +1,7 @@
 import mqtt from "async-mqtt"
 import fs from "fs"
 
-const image = fs.readFileSync("img.png")
+const image = fs.readFileSync("interlaced8-passes-test-with-pngle.png")
 
 const sendImage = async () => {
   console.log("Connecting to MQTT...")

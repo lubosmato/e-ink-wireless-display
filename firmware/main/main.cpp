@@ -9,8 +9,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "pngle/pngle.h"
+#include "power.hpp"
+
+#include <chrono>
 
 namespace es = essentials;
+using namespace std::chrono_literals;
 
 const char* TAG_APP = "app";
 
@@ -35,6 +39,7 @@ struct App {
   es::Wifi wifi{};
   std::unique_ptr<es::Mqtt> mqtt{};
   std::vector<std::unique_ptr<es::Mqtt::Subscription>> subs{};
+  Power power{};
 
   es::SettingsServer settingsServer{80,
     "My App",
@@ -57,7 +62,11 @@ struct App {
   static constexpr uint32_t displayWidth = 1200;
   static constexpr uint32_t displayHeight = 825;
 
+  static constexpr auto sleepTime = 5s;
+
   void run() {
+    checkBattery();
+
     wifi.connect(*ssid, *wifiPass);
 
     ESP_LOGI(TAG_APP, "Waiting for wifi connection...");
@@ -140,10 +149,21 @@ struct App {
       }
     }));
 
-    // 15s timeout for sleeping
-    vTaskDelay(pdMS_TO_TICKS(1500));
+    // 10s timeout for sleeping
+    vTaskDelay(pdMS_TO_TICKS(10000));
     timedOut = true;
     goToSleep();
+  }
+
+  void checkBattery() {
+    const int capacity = power.readBatteryCapacity();
+    ESP_LOGI(TAG_APP, "Battery capacity %d%%", capacity);
+
+    if (capacity == 0) {
+      ESP_LOGW(TAG_APP, "Battery capacity at 0%%. Going to sleep...");
+      esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
+      esp_deep_sleep_start();
+    }
   }
 
   void setImageDimension(uint32_t w, uint32_t h) {
@@ -165,7 +185,7 @@ struct App {
   }
 
   void flushPixelBuffer() {
-    printf("flushing pixel buffer %d\n", currentPixelOffset);
+    ESP_LOGI(TAG_APP, "flushing pixel buffer %d", currentPixelOffset);
     // TODO
     if (pixelBuffer.size() + currentPixelOffset > imageWidth * imageHeight) {
       drawDisplay();
@@ -173,7 +193,7 @@ struct App {
   }
 
   void drawDisplay() {
-    printf("drawing display\n");
+    ESP_LOGI(TAG_APP, "drawing display");
     // TODO
   }
 
@@ -182,6 +202,8 @@ struct App {
     mqtt->publish("info/startup/totalHeap", deviceInfo.totalHeap(), es::Mqtt::Qos::Qos0, false);
     // elapsed time before connecting to MQTT
     mqtt->publish("info/startup/time", deviceInfo.uptime(), es::Mqtt::Qos::Qos0, false);
+    mqtt->publish("info/startup/batteryCapacity", power.readBatteryCapacity(), es::Mqtt::Qos::Qos0, false);
+    mqtt->publish("info/startup/batteryVoltage", power.readBatteryVoltage(), es::Mqtt::Qos::Qos0, false);
   }
 
   void goToSleep() {
@@ -189,8 +211,11 @@ struct App {
     // TODO wait for mqtt publish finish (in publishAfterDeviceInfo) instead of sleep 500ms
     vTaskDelay(pdMS_TO_TICKS(500));
 
+    if (timedOut) {
+      ESP_LOGW(TAG_APP, "Timed out");
+    }
     ESP_LOGI(TAG_APP, "Good night, going to sleep...");
-    esp_sleep_enable_timer_wakeup(5 * 1000 * 1000);
+    esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
     esp_deep_sleep_start();
   }
 
