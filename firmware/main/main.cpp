@@ -212,7 +212,7 @@ struct App {
     vTaskDelay(pdMS_TO_TICKS(500));
 
     if (timedOut) {
-      ESP_LOGW(TAG_APP, "Timed out");
+      ESP_LOGW(TAG_APP, "Tímed out!");
     }
     ESP_LOGI(TAG_APP, "Good night, going to sleep...");
     esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
