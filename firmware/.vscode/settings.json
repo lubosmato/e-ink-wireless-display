@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "Tag Parser",
   "idf.adapterTargetName": "esp32",
-  "idf.portWin": "COM3",
+  "idf.portWin": "COM4",
   "files.associations": {
     "*.ipp": "cpp",
     "xstring": "cpp",

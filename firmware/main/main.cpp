@@ -1,3 +1,4 @@
+#include "dma_buffer.hpp"
 #include "esp_log.h"
 #include "esp_sleep.h"
 #include "essentials/config.hpp"
@@ -32,14 +33,15 @@ struct App {
 
   es::Esp32Storage mqttStorage{"mqtt"};
   es::Config mqttConfig{mqttStorage};
-  es::Config::Value<std::string> mqttUrl = mqttConfig.get<std::string>("url");
-  es::Config::Value<std::string> mqttUser = mqttConfig.get<std::string>("user");
-  es::Config::Value<std::string> mqttPass = mqttConfig.get<std::string>("pass");
+  es::Config::Value<std::string> mqttUrl = mqttConfig.get<std::string>("url", "mqtt://127.0.0.1:1883");
+  es::Config::Value<std::string> mqttUser = mqttConfig.get<std::string>("user", "");
+  es::Config::Value<std::string> mqttPass = mqttConfig.get<std::string>("pass", "");
 
   es::Wifi wifi{};
   std::unique_ptr<es::Mqtt> mqtt{};
   std::vector<std::unique_ptr<es::Mqtt::Subscription>> subs{};
   Power power{};
+  float batteryVoltage{};
 
   es::SettingsServer settingsServer{80,
     "My App",
@@ -54,7 +56,7 @@ struct App {
 
   pngle_t* pngle = nullptr;
   bool timedOut = false;
-  std::array<uint8_t, 1200 * 10> pixelBuffer{};
+  DmaBuffer pixelBuffer = make_dma_buffer(1200 * 10);
   uint32_t currentPixelOffset{};
   uint32_t imageWidth{};
   uint32_t imageHeight{};
@@ -122,6 +124,12 @@ struct App {
       app->drawPixel(x, y, w, h, rgba);
     });
 
+    subs.emplace_back(mqtt->subscribe<bool>("5v", es::Mqtt::Qos::Qos0, [this](std::optional<bool> value) {
+      if (!value) return;
+
+      power.set5VOutput(*value);
+    }));
+
     subs.emplace_back(mqtt->subscribe("image", es::Mqtt::Qos::Qos0, [this](const es::Mqtt::Data& chunk) {
       if (pngle != nullptr) {
         int fedBytes = pngle_feed(pngle, chunk.data.data(), chunk.data.size());
@@ -156,7 +164,8 @@ struct App {
   }
 
   void checkBattery() {
-    const int capacity = power.readBatteryCapacity();
+    batteryVoltage = power.readBatteryVoltage();
+    const int capacity = power.voltageToCapacity(batteryVoltage);
     ESP_LOGI(TAG_APP, "Battery capacity %d%%", capacity);
 
     if (capacity == 0) {
@@ -202,8 +211,9 @@ struct App {
     mqtt->publish("info/startup/totalHeap", deviceInfo.totalHeap(), es::Mqtt::Qos::Qos0, false);
     // elapsed time before connecting to MQTT
     mqtt->publish("info/startup/time", deviceInfo.uptime(), es::Mqtt::Qos::Qos0, false);
-    mqtt->publish("info/startup/batteryCapacity", power.readBatteryCapacity(), es::Mqtt::Qos::Qos0, false);
-    mqtt->publish("info/startup/batteryVoltage", power.readBatteryVoltage(), es::Mqtt::Qos::Qos0, false);
+
+    mqtt->publish("info/startup/batteryVoltage", batteryVoltage, es::Mqtt::Qos::Qos0, false);
+    mqtt->publish("info/startup/batteryCapacity", power.voltageToCapacity(batteryVoltage), es::Mqtt::Qos::Qos0, false);
   }
 
   void goToSleep() {

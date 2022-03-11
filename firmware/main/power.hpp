@@ -44,7 +44,7 @@ struct Power {
     gpio_set_level(enable5VPin, enable ? 1 : 0);
   }
 
-  int readBatteryCapacity() {
+  static int voltageToCapacity(float voltage) {
     // 100% == 4.2V
     // 20% == 3.73 (but we consider 20% to be a discharge limit so lets make 3.73 volts 0%, see LUT)
     struct LUTElement {
@@ -71,8 +71,6 @@ struct Power {
       {6, 3.75},
       {0, 3.73},
     }};
-
-    float voltage = readBatteryVoltage();
 
     if (voltage >= lut.cbegin()->voltageThresh) return 100;
     if (voltage <= lut.crbegin()->voltageThresh) return 0;
