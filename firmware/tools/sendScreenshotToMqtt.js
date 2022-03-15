@@ -50,13 +50,16 @@ const captureBlackWhiteImage = async (url) => {
 const sendImage = async () => {
   const image = await captureBlackWhiteImage(
     // "https://cdn.dribbble.com/users/2367559/screenshots/14096604/weather_dashboard_app_thumb_4x.png"
-    "https://lubosmato.github.io/"
+    // "https://lubosmato.github.io/"
+    // "https://www.xmple.com/wallpaper/white-linear-gradient-black-1920x1080-c2-f8f8ff-000000-a-0-f-14.svg"
+    // "https://instagram.fprg5-1.fna.fbcdn.net/v/t51.2885-15/224506752_119408683745723_1983715120160793531_n.jpg?stp=dst-jpg_e35&_nc_ht=instagram.fprg5-1.fna.fbcdn.net&_nc_cat=111&_nc_ohc=NIYfrDnldFAAX822E2w&tn=kWCIju5s9PCCr2WD&edm=ALQROFkBAAAA&ccb=7-4&ig_cache_key=MjYyNzI2MzU2OTY0NTAzMDAxMg%3D%3D.2-ccb7-4&oh=00_AT9q1L7TRsMsnWtp6n6-LDaj0IvpmhPYIYj7VzHax4ofkQ&oe=62380BE9&_nc_sid=30a2ef"
+    "https://en.cppreference.com/w/cpp/algorithm/fill"
   )
 
   console.log("Connecting to MQTT...")
-  const client = await mqtt.connectAsync("mqtts://drawboard.lubosmatejcik.cz:8883", {
-    username: "esp32-mqtt",
-    password: "esp32-pass",
+  const client = await mqtt.connectAsync("mqtts://grow.lubosmatejcik.cz:8883", {
+    username: "user?",
+    password: "password?",
   })
 
   if (!client.connected || client.disconnected) throw new Error("Could not connect to MQTT server")

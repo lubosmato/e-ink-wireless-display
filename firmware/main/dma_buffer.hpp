@@ -34,7 +34,10 @@ constexpr bool operator!=(const DmaAllocator<T>&, const DmaAllocator<U>&) noexce
 
 using DmaBuffer = std::vector<uint8_t, DmaAllocator<uint8_t>>;
 
-static DmaBuffer make_dma_buffer(std::size_t size) {
+template<std::size_t size>
+static DmaBuffer make_dma_buffer() {
+  static_assert(size % 4 == 0, "DMA buffer size must be multiple of 4");
+
   DmaBuffer buffer{};
   buffer.resize(size);
 

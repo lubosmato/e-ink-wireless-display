@@ -4,9 +4,10 @@
 #include "esp_adc_cal.h"
 #include "esp_log.h"
 
+#include <array>
 #include <numeric>
 
-const char* TAG_POWER = "power";
+static const char* TAG_POWER = "power";
 
 struct Power {
   gpio_num_t batteryVoltagePin = GPIO_NUM_36;
@@ -40,8 +41,12 @@ struct Power {
     // TODO how to calibrate ADCs on new boards? should be part of "first run" procedure? how?
   }
 
-  void set5VOutput(bool enable) {
+  void set5VOutput(bool enable) const {
     gpio_set_level(enable5VPin, enable ? 1 : 0);
+  }
+
+  bool get5VOutput() const {
+    return gpio_get_level(enable5VPin) == 1;
   }
 
   static int voltageToCapacity(float voltage) {
@@ -93,7 +98,7 @@ struct Power {
     return 0;
   }
 
-  float readBatteryVoltage() {
+  float readBatteryVoltage() const {
     constexpr int numberOfSamples = 2048;
 
     int sum = 0;

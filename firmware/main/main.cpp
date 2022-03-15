@@ -11,7 +11,9 @@
 #include "freertos/task.h"
 #include "pngle/pngle.h"
 #include "power.hpp"
+#include "waveshare_it8951.hpp"
 
+#include <algorithm>
 #include <chrono>
 
 namespace es = essentials;
@@ -30,6 +32,7 @@ struct App {
   es::Config config{configStorage};
   es::Config::Value<std::string> ssid = config.get<std::string>("ssid");
   es::Config::Value<std::string> wifiPass = config.get<std::string>("wifiPass");
+  es::Config::Value<std::string> vComDefault = mqttConfig.get<std::string>("vcom", "-1.8");
 
   es::Esp32Storage mqttStorage{"mqtt"};
   es::Config mqttConfig{mqttStorage};
@@ -44,7 +47,7 @@ struct App {
   float batteryVoltage{};
 
   es::SettingsServer settingsServer{80,
-    "My App",
+    "Wireless E-Ink",
     "1.0.1",
     {
       {"WiFi SSID", ssid},
@@ -52,23 +55,30 @@ struct App {
       {"MQTT URL", mqttUrl},
       {"MQTT Username", mqttUser},
       {"MQTT Password", mqttPass},
+      {"VCom", vComDefault},
     }};
 
   pngle_t* pngle = nullptr;
   bool timedOut = false;
-  DmaBuffer pixelBuffer = make_dma_buffer(1200 * 10);
-  uint32_t currentPixelOffset{};
+  WaveshareIT8951 display{WaveshareIT8951::Pins{}, power};
+  DmaBuffer& pixelBuffer{display.pixelBuffer()};
+  uint32_t currentBufferOffset{};
   uint32_t imageWidth{};
   uint32_t imageHeight{};
+  float vcom{};
 
-  static constexpr uint32_t displayWidth = 1200;
-  static constexpr uint32_t displayHeight = 825;
+  static constexpr uint32_t pixelsToByteRatio = 2; // 4 bits per pixel (2 pixels : 1 buffer byte)
+  static constexpr uint16_t displayWidth = 1200;
+  static constexpr uint16_t displayHeight = 825;
 
-  static constexpr auto sleepTime = 5s;
+  static constexpr auto sleepTime = 5s; // TODO don't forget to change
 
   void run() {
     checkBattery();
 
+    vcom = std::atof((*vComDefault).c_str());
+
+    display.powerUp();
     wifi.connect(*ssid, *wifiPass);
 
     ESP_LOGI(TAG_APP, "Waiting for wifi connection...");
@@ -77,6 +87,19 @@ struct App {
       tryCount++;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+
+    ESP_LOGI(TAG_APP, "VCom %f", vcom);
+    display.connect(vcom);
+
+    auto info = display.info();
+    ESP_LOGI(TAG_APP,
+      "Display: width %d, height %d, addr H %d, addr L %d, FW ver %s, LUT ver %s",
+      info.width,
+      info.height,
+      info.bufferAddressH,
+      info.bufferAddressL,
+      info.fwVersion,
+      info.lutVersion);
 
     settingsServer.start();
 
@@ -124,13 +147,9 @@ struct App {
       app->drawPixel(x, y, w, h, rgba);
     });
 
-    subs.emplace_back(mqtt->subscribe<bool>("5v", es::Mqtt::Qos::Qos0, [this](std::optional<bool> value) {
-      if (!value) return;
-
-      power.set5VOutput(*value);
-    }));
-
     subs.emplace_back(mqtt->subscribe("image", es::Mqtt::Qos::Qos0, [this](const es::Mqtt::Data& chunk) {
+      ESP_LOGI(TAG_APP, "got image data, size: %d", chunk.data.size());
+
       if (pngle != nullptr) {
         int fedBytes = pngle_feed(pngle, chunk.data.data(), chunk.data.size());
         if (fedBytes < 0) {
@@ -138,16 +157,10 @@ struct App {
         }
       }
 
-      ESP_LOGI(TAG_APP, "got image data, size: %d", chunk.data.size());
-
       const auto isLastChunk = chunk.offset + chunk.data.size() == chunk.totalLength;
       if (isLastChunk) {
         const auto elapsedTime = esp_timer_get_time() - startTime;
-
         ESP_LOGI(TAG_APP, "elapsed time to image download and decode: %lld ms", elapsedTime / 1000);
-
-        // TODO decode image
-        // TODO draw image
 
         pngle_destroy(pngle);
         pngle = nullptr;
@@ -157,8 +170,8 @@ struct App {
       }
     }));
 
-    // 10s timeout for sleeping
-    vTaskDelay(pdMS_TO_TICKS(10000));
+    // 20s timeout for sleeping
+    vTaskDelay(pdMS_TO_TICKS(20000));
     timedOut = true;
     goToSleep();
   }
@@ -181,29 +194,48 @@ struct App {
   }
 
   void drawPixel(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4]) {
-    uint32_t pixelIndex = y * imageWidth + x - currentPixelOffset;
-    if (pixelIndex >= pixelBuffer.size()) {
+    uint32_t pixelIndex = y * imageWidth + x;
+    uint32_t bufferIndex = pixelIndex / pixelsToByteRatio - currentBufferOffset;
+
+    if (bufferIndex >= pixelBuffer.size()) {
       flushPixelBuffer();
 
-      currentPixelOffset += pixelBuffer.size();
-      pixelIndex = y * imageWidth + x - currentPixelOffset;
+      currentBufferOffset += pixelBuffer.size();
+      bufferIndex = pixelIndex / pixelsToByteRatio - currentBufferOffset;
     }
-    // TODO put two pixels into one pixel buffer element (one pixel has 4 bits) - IT8951 packed pixel data transfer
-    // since the display is greyscale, we only need one color (incoming image is grayscale)
-    pixelBuffer[pixelIndex] = rgba[0];
-  }
 
-  void flushPixelBuffer() {
-    ESP_LOGI(TAG_APP, "flushing pixel buffer %d", currentPixelOffset);
-    // TODO
-    if (pixelBuffer.size() + currentPixelOffset > imageWidth * imageHeight) {
+    // NOTE since the display is greyscale, we only need one color (incoming image is/should be grayscale)
+    if ((pixelIndex % 2) == 0) {
+      pixelBuffer[bufferIndex] = (rgba[0] & 0xf0);
+    } else {
+      pixelBuffer[bufferIndex] |= (rgba[0] & 0xf0) >> 4;
+    }
+
+    if (pixelIndex == imageWidth * imageHeight - 1) {
+      flushPixelBuffer();
       drawDisplay();
     }
   }
 
+  void flushPixelBuffer() {
+    // NOTE this code heavily rely on having buffer size multiply of image size
+    ESP_LOGI(TAG_APP, "flushing pixel buffer %d", currentBufferOffset);
+
+    const uint32_t pixelOffset = currentBufferOffset * pixelsToByteRatio;
+
+    const uint16_t x = pixelOffset % displayWidth;
+    const uint16_t y = pixelOffset / displayWidth;
+
+    const uint16_t width = displayWidth;
+    const uint16_t height = (pixelBuffer.size() * pixelsToByteRatio) / displayWidth;
+
+    display.sendImage(x, y, width, height);
+  }
+
   void drawDisplay() {
     ESP_LOGI(TAG_APP, "drawing display");
-    // TODO
+    display.showImage(0, 0, displayWidth, displayHeight);
+    display.disconnect();
   }
 
   void publishStartupDeviceInfo() {

@@ -5,9 +5,9 @@ const image = fs.readFileSync("interlaced8-passes-test-with-pngle.png")
 
 const sendImage = async () => {
   console.log("Connecting to MQTT...")
-  const client = await mqtt.connectAsync("mqtts://drawboard.lubosmatejcik.cz:8883", {
-    username: "esp32-mqtt",
-    password: "esp32-pass",
+  const client = await mqtt.connectAsync("mqtts://grow.lubosmatejcik.cz:8883", {
+    username: "user?",
+    password: "password?",
   })
 
   if (!client.connected || client.disconnected) throw new Error("Could not connect to MQTT server")
