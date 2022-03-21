@@ -25,6 +25,8 @@ const captureBlackWhiteImage = async (url) => {
   const img = await Jimp.read(imageBuffer)
   img
     .greyscale()
+    .contrast(0.1)
+    .normalize()
 
   const greyImageBuffer = await img.getBufferAsync(Jimp.MIME_PNG)
   const minifiedGreyImageBuffer = await imagemin.buffer(
@@ -53,20 +55,20 @@ const sendImage = async () => {
     // "https://lubosmato.github.io/"
     // "https://www.xmple.com/wallpaper/white-linear-gradient-black-1920x1080-c2-f8f8ff-000000-a-0-f-14.svg"
     // "https://instagram.fprg5-1.fna.fbcdn.net/v/t51.2885-15/224506752_119408683745723_1983715120160793531_n.jpg?stp=dst-jpg_e35&_nc_ht=instagram.fprg5-1.fna.fbcdn.net&_nc_cat=111&_nc_ohc=NIYfrDnldFAAX822E2w&tn=kWCIju5s9PCCr2WD&edm=ALQROFkBAAAA&ccb=7-4&ig_cache_key=MjYyNzI2MzU2OTY0NTAzMDAxMg%3D%3D.2-ccb7-4&oh=00_AT9q1L7TRsMsnWtp6n6-LDaj0IvpmhPYIYj7VzHax4ofkQ&oe=62380BE9&_nc_sid=30a2ef"
-    "https://en.cppreference.com/w/cpp/algorithm/fill"
+    "https://assets.materialup.com/uploads/73110ccc-2145-4ab3-b679-214b983a3660/attachment.png"
   )
 
   console.log("Connecting to MQTT...")
   const client = await mqtt.connectAsync("mqtts://grow.lubosmatejcik.cz:8883", {
-    username: "user?",
-    password: "password?",
+    username: "esp32",
+    password: "65G@j!74Cfg6%$sR8x",
   })
 
   if (!client.connected || client.disconnected) throw new Error("Could not connect to MQTT server")
   
   console.log("MQTT connected!")
 
-  const topic = "esp32/6037cc/image"
+  const topic = "esp32/c5d4b9/image"
   console.log(`Publishing image ${image.byteLength / 1024} kB on topic '${topic}`)
 
   console.time("publish")

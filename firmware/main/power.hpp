@@ -2,10 +2,11 @@
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
-#include "esp_log.h"
+#include "simple_logger.hpp"
 
 #include <array>
 #include <numeric>
+#include <tuple>
 
 static const char* TAG_POWER = "power";
 
@@ -17,20 +18,25 @@ struct Power {
   Power() {
     gpio_config_t conf{};
 
-    conf.pin_bit_mask = (1 << batteryVoltagePin);
+    conf.pin_bit_mask = (1ull << batteryVoltagePin);
     conf.mode = GPIO_MODE_INPUT;
     conf.pull_up_en = GPIO_PULLUP_DISABLE;
     conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     conf.intr_type = GPIO_INTR_DISABLE;
-
     gpio_config(&conf);
 
-    conf.pin_bit_mask = (1 << enable5VPin);
+    conf.pin_bit_mask = (1ull << enable5VPin);
     conf.mode = GPIO_MODE_OUTPUT;
     conf.pull_up_en = GPIO_PULLUP_ENABLE;
     conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     conf.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&conf);
 
+    conf.pin_bit_mask = (1ull << GPIO_NUM_32); // sensor VP
+    conf.mode = GPIO_MODE_INPUT;
+    conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    conf.intr_type = GPIO_INTR_DISABLE;
     gpio_config(&conf);
 
     adc_set_data_width(ADC_UNIT_1, ADC_WIDTH_BIT_12);
@@ -38,7 +44,37 @@ struct Power {
     constexpr uint32_t defaultVRef = 1100;
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, defaultVRef, &adcChars);
 
-    // TODO how to calibrate ADCs on new boards? should be part of "first run" procedure? how?
+    // TODO use custom calibration values (manufacture's efuse values are inaccurate)
+    // adcChars.coeff_a = 56000;
+    // adcChars.coeff_b = 72;
+    adcChars.coeff_a = 49505;
+    adcChars.coeff_b = 269;
+    // corrected voltage = (sample * coeff_a) / 65536 + coeff_b
+
+    // Vmet ADC
+    // 1810 1871
+    // 1820 1884
+    // 1835 1889
+    // 1845 1905
+    // 1860 1906
+    // 1870 1926
+    // 1880 1958
+    // 1910 1975
+    // 2016 2009
+    // 2010 2073
+    // 2055 2093
+
+    /* RAW ADC | Volt meter
+
+    1870 1675
+    1927 1725
+    1978 1770
+    2017 1800 ? (maybe vice versa?)
+    2281 1975
+    2359 2035
+    2365 2060
+    2367 2080
+    */
   }
 
   void set5VOutput(bool enable) const {
@@ -98,29 +134,33 @@ struct Power {
     return 0;
   }
 
-  float readBatteryVoltage() const {
+  std::tuple<float, uint32_t> readBatteryVoltage() const {
     constexpr int numberOfSamples = 2048;
 
+    int rawSum = 0;
     int sum = 0;
     for (int i = 0; i < numberOfSamples; i++) {
-      const int raw = adc1_get_raw(ADC1_CHANNEL_0);
-      const int adcVoltage = esp_adc_cal_raw_to_voltage(raw, &adcChars);
-      sum += adcVoltage;
+      int raw = adc1_get_raw(ADC1_CHANNEL_0);
+      rawSum += raw;
+      sum += esp_adc_cal_raw_to_voltage(raw, &adcChars);
     }
-
     const int average = sum / numberOfSamples;
+
+    logW(TAG_POWER, "raw %d mV", rawSum / numberOfSamples);
+    logW(TAG_POWER, "corrected %d mV", average);
+
     const float adcVoltage = average / 1000.0f; // average in [mV]
     constexpr float voltageMultiplier = 2; // NOTE resistor divider 1:1
     float voltage = adcVoltage * voltageMultiplier;
 
     if (voltage > 4.22) {
-      ESP_LOGW(TAG_POWER, "Battery over voltage: %fV", voltage);
+      logE(TAG_POWER, "Battery over voltage: %fV", voltage);
     }
 
     if (voltage < 3.71) {
-      ESP_LOGW(TAG_POWER, "Battery under voltage: %fV", voltage);
+      logE(TAG_POWER, "Battery under voltage: %fV", voltage);
     }
 
-    return voltage;
+    return {voltage, rawSum};
   }
 };

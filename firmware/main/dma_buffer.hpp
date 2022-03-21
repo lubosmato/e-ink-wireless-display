@@ -13,7 +13,6 @@ struct DmaAllocator {
   DmaAllocator(const DmaAllocator<U>&) noexcept {};
 
   T* allocate(std::size_t n) {
-    printf("allocate %u\n", n * sizeof(T));
     return reinterpret_cast<T*>(heap_caps_malloc(n * sizeof(T), MALLOC_CAP_DMA));
   }
 

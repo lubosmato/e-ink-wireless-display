@@ -1,5 +1,4 @@
 #include "dma_buffer.hpp"
-#include "esp_log.h"
 #include "esp_sleep.h"
 #include "essentials/config.hpp"
 #include "essentials/device_info.hpp"
@@ -11,6 +10,7 @@
 #include "freertos/task.h"
 #include "pngle/pngle.h"
 #include "power.hpp"
+#include "simple_logger.hpp"
 #include "waveshare_it8951.hpp"
 
 #include <algorithm>
@@ -45,6 +45,7 @@ struct App {
   std::vector<std::unique_ptr<es::Mqtt::Subscription>> subs{};
   Power power{};
   float batteryVoltage{};
+  uint32_t batteryRaw{};
 
   es::SettingsServer settingsServer{80,
     "Wireless E-Ink",
@@ -81,18 +82,18 @@ struct App {
     display.powerUp();
     wifi.connect(*ssid, *wifiPass);
 
-    ESP_LOGI(TAG_APP, "Waiting for wifi connection...");
+    logW(TAG_APP, "Waiting for wifi connection...");
     int tryCount = 0;
     while (!wifi.isConnected() && tryCount < 1000) {
       tryCount++;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
 
-    ESP_LOGI(TAG_APP, "VCom %f", vcom);
+    logW(TAG_APP, "VCom %f", vcom);
     display.connect(vcom);
 
     auto info = display.info();
-    ESP_LOGI(TAG_APP,
+    logW(TAG_APP,
       "Display: width %d, height %d, addr H %d, addr L %d, FW ver %s, LUT ver %s",
       info.width,
       info.height,
@@ -104,10 +105,10 @@ struct App {
     settingsServer.start();
 
     if (!wifi.isConnected()) {
-      ESP_LOGW(TAG_APP, "Couldn't connect to the wifi. Starting WiFi AP with settings server.");
+      logE(TAG_APP, "Couldn't connect to the wifi. Starting WiFi AP with settings server.");
       wifi.startAccessPoint("esp32", "12345678", es::Wifi::Channel::Channel5);
       while (true) {
-        ESP_LOGI(TAG_APP, "Waiting for configuration...");
+        logW(TAG_APP, "Waiting for configuration...");
         vTaskDelay(pdMS_TO_TICKS(1000));
       }
     }
@@ -128,10 +129,10 @@ struct App {
       std::chrono::seconds{30},
       lastWill,
       [this]() {
-        ESP_LOGI(TAG_APP, "MQTT is connected!");
+        logI(TAG_APP, "MQTT is connected!");
         publishStartupDeviceInfo();
       },
-      []() { ESP_LOGI(TAG_APP, "MQTT is disconnected!"); },
+      []() { logI(TAG_APP, "MQTT is disconnected!"); },
       1024 * 30);
 
     pngle = pngle_new();
@@ -148,19 +149,19 @@ struct App {
     });
 
     subs.emplace_back(mqtt->subscribe("image", es::Mqtt::Qos::Qos0, [this](const es::Mqtt::Data& chunk) {
-      ESP_LOGI(TAG_APP, "got image data, size: %d", chunk.data.size());
+      logI(TAG_APP, "got image data, size: %d", chunk.data.size());
 
       if (pngle != nullptr) {
         int fedBytes = pngle_feed(pngle, chunk.data.data(), chunk.data.size());
         if (fedBytes < 0) {
-          ESP_LOGE(TAG_APP, "pngle error: %s", pngle_error(pngle));
+          logE(TAG_APP, "pngle error: %s", pngle_error(pngle));
         }
       }
 
       const auto isLastChunk = chunk.offset + chunk.data.size() == chunk.totalLength;
       if (isLastChunk) {
         const auto elapsedTime = esp_timer_get_time() - startTime;
-        ESP_LOGI(TAG_APP, "elapsed time to image download and decode: %lld ms", elapsedTime / 1000);
+        logI(TAG_APP, "elapsed time to image download and decode: %lld ms", elapsedTime / 1000);
 
         pngle_destroy(pngle);
         pngle = nullptr;
@@ -177,12 +178,15 @@ struct App {
   }
 
   void checkBattery() {
-    batteryVoltage = power.readBatteryVoltage();
+    auto [v, raw] = power.readBatteryVoltage();
+    batteryVoltage = v;
+    batteryRaw = raw;
+
     const int capacity = power.voltageToCapacity(batteryVoltage);
-    ESP_LOGI(TAG_APP, "Battery capacity %d%%", capacity);
+    logW(TAG_APP, "Battery capacity %d%%", capacity);
 
     if (capacity == 0) {
-      ESP_LOGW(TAG_APP, "Battery capacity at 0%%. Going to sleep...");
+      logE(TAG_APP, "Battery capacity at 0%%. Going to sleep...");
       esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
       esp_deep_sleep_start();
     }
@@ -219,7 +223,7 @@ struct App {
 
   void flushPixelBuffer() {
     // NOTE this code heavily rely on having buffer size multiply of image size
-    ESP_LOGI(TAG_APP, "flushing pixel buffer %d", currentBufferOffset);
+    logI(TAG_APP, "flushing pixel buffer %d", currentBufferOffset);
 
     const uint32_t pixelOffset = currentBufferOffset * pixelsToByteRatio;
 
@@ -233,7 +237,7 @@ struct App {
   }
 
   void drawDisplay() {
-    ESP_LOGI(TAG_APP, "drawing display");
+    logW(TAG_APP, "drawing display");
     display.showImage(0, 0, displayWidth, displayHeight);
     display.disconnect();
   }
@@ -244,6 +248,7 @@ struct App {
     // elapsed time before connecting to MQTT
     mqtt->publish("info/startup/time", deviceInfo.uptime(), es::Mqtt::Qos::Qos0, false);
 
+    mqtt->publish("info/startup/batteryRaw", batteryRaw, es::Mqtt::Qos::Qos0, false);
     mqtt->publish("info/startup/batteryVoltage", batteryVoltage, es::Mqtt::Qos::Qos0, false);
     mqtt->publish("info/startup/batteryCapacity", power.voltageToCapacity(batteryVoltage), es::Mqtt::Qos::Qos0, false);
   }
@@ -254,9 +259,9 @@ struct App {
     vTaskDelay(pdMS_TO_TICKS(500));
 
     if (timedOut) {
-      ESP_LOGW(TAG_APP, "Tímed out!");
+      logE(TAG_APP, "Tímed out!");
     }
-    ESP_LOGI(TAG_APP, "Good night, going to sleep...");
+    logW(TAG_APP, "Good night, going to sleep...");
     esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
     esp_deep_sleep_start();
   }
@@ -273,9 +278,9 @@ extern "C" void app_main() {
   try {
     App{}.run();
   } catch (const std::exception& e) {
-    ESP_LOGE(TAG_APP, "EXCEPTION: %s", e.what());
+    logE(TAG_APP, "EXCEPTION: %s", e.what());
   } catch (...) {
-    ESP_LOGE(TAG_APP, "UNKNOWN EXCEPTION");
+    logE(TAG_APP, "UNKNOWN EXCEPTION");
   }
   esp_restart();
 }

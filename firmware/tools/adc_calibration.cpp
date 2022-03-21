@@ -3,6 +3,7 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_adc_cal.h"
+#include "soc/efuse_reg.h"
 #include "esp_system.h"
 #include "esp_vfs_dev.h"
 #include "freertos/FreeRTOS.h"

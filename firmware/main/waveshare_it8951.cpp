@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cstring>
 
+const char* TAG_DISPLAY = "display";
+
 constexpr int pixelDmaBufferSize = 1200 * 25; // NOTE usable only for 9.7" display (1200x825)
 constexpr int generalDmaBufferSize = 256;
 
@@ -73,8 +75,10 @@ void WaveshareIT8951::waitForDisplayImage() {
 
 void WaveshareIT8951::powerUp() {
   _power.set5VOutput(true);
-  vTaskDelay(pdMS_TO_TICKS(100)); // TODO check what time is ok with DC/DC converter?
+  logD(TAG_DISPLAY, "5V on, waiting");
+  vTaskDelay(pdMS_TO_TICKS(100));
 
+  logD(TAG_DISPLAY, "reset pulse");
   gpio_set_level(_pinConfig.rst, 0);
   vTaskDelay(pdMS_TO_TICKS(10));
   gpio_set_level(_pinConfig.rst, 1);
@@ -82,6 +86,8 @@ void WaveshareIT8951::powerUp() {
 }
 
 void WaveshareIT8951::connect(float vcom) {
+  logD(TAG_DISPLAY, "connect");
+
   if (!_power.get5VOutput()) {
     powerUp();
   }
@@ -136,6 +142,8 @@ void WaveshareIT8951::waitForReady(int timeout /* = defaultReadyTimeout*/) {
 }
 
 void WaveshareIT8951::readDeviceInfo() {
+  logD(TAG_DISPLAY, "read dev info");
+
   sendCommand(Command::GET_DEV_INFO);
   auto infoData = readBytes(sizeof(Info));
 
@@ -147,6 +155,8 @@ void WaveshareIT8951::readDeviceInfo() {
 }
 
 void WaveshareIT8951::sendCommand(Command command) {
+  logD(TAG_DISPLAY, "send command %d", static_cast<uint16_t>(command));
+
   waitForReady();
 
   performTransaction(true, 0, Operation::COMMAND);
@@ -167,6 +177,8 @@ essentials::Span<uint8_t> WaveshareIT8951::readBytes(int readSize) {
 }
 
 void WaveshareIT8951::writePixelBuffer(int writeSize) {
+  logD(TAG_DISPLAY, "write pix buff %d", writeSize);
+
   waitForReady();
 
   performTransaction(true, 0, Operation::WRITE);
@@ -202,11 +214,15 @@ void WaveshareIT8951::writePattern(uint8_t pattern, int writeSize) {
 }
 
 void WaveshareIT8951::writeRegister(Register reg, uint16_t value) {
+  logD(TAG_DISPLAY, "write reg %d = %d", static_cast<uint16_t>(reg), value);
+
   sendCommand(Command::REG_WR);
   writeData(reg, value);
 }
 
 uint16_t WaveshareIT8951::readRegister(Register reg) {
+  logD(TAG_DISPLAY, "read reg %d", static_cast<uint16_t>(reg));
+
   sendCommand(Command::REG_RD);
   writeData(reg);
 
@@ -215,6 +231,8 @@ uint16_t WaveshareIT8951::readRegister(Register reg) {
 }
 
 void WaveshareIT8951::sendImage(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  logD(TAG_DISPLAY, "send image %d, %d, %d, %d", x, y, width, height);
+
   sendCommand(Command::LD_IMG_AREA);
 
   constexpr uint16_t endian = 1; // little = 0, big = 1
@@ -228,6 +246,8 @@ void WaveshareIT8951::sendImage(uint16_t x, uint16_t y, uint16_t width, uint16_t
 }
 
 void WaveshareIT8951::showImage(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  logD(TAG_DISPLAY, "show image %d, %d, %d, %d", x, y, width, height);
+
   sendCommand(Command::DPY_BUF_AREA);
   writeData(x, y, width, height, uint16_t{0}, _info.bufferAddressL, _info.bufferAddressH);
   waitForDisplayImage();
@@ -243,6 +263,8 @@ void WaveshareIT8951::showImage(uint16_t x, uint16_t y, uint16_t width, uint16_t
 }
 
 void WaveshareIT8951::clear() {
+  logD(TAG_DISPLAY, "clear");
+
   sendCommand(Command::LD_IMG_AREA);
 
   constexpr uint16_t endian = 0; // little

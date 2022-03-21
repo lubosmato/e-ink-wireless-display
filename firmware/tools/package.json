@@ -4,6 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@jimp/plugin-normalize": "^0.16.1",
+    "@jimp/plugin-threshold": "^0.16.1",
     "async-mqtt": "^2.6.2",
     "capture-website": "^2.3.0",
     "imagemin": "^8.0.1",
