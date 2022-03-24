@@ -74,6 +74,11 @@ struct Power {
     2359 2035
     2365 2060
     2367 2080
+    2367 2080
+    2367 2080
+    2367 2080
+    2367 2080
+    2367 2080
     */
   }
 
@@ -86,31 +91,33 @@ struct Power {
   }
 
   static int voltageToCapacity(float voltage) {
-    // 100% == 4.2V
-    // 20% == 3.73 (but we consider 20% to be a discharge limit so lets make 3.73 volts 0%, see LUT)
     struct LUTElement {
       int capacity;
       float voltageThresh;
     };
 
-    const static std::array<LUTElement, 17> lut{{
+    const static std::array<LUTElement, 21> lut{{
       {100, 4.2},
-      {93, 4.15},
-      {87, 4.11},
-      {81, 4.08},
-      {75, 4.02},
-      {68, 3.98},
-      {62, 3.95},
-      {56, 3.91},
-      {50, 3.87},
-      {43, 3.85},
-      {37, 3.84},
-      {31, 3.82},
-      {25, 3.8},
-      {18, 3.79},
-      {12, 3.77},
-      {6, 3.75},
-      {0, 3.73},
+      {95, 4.15},
+      {90, 4.11},
+      {85, 4.08},
+      {80, 4.02},
+      {75, 3.98},
+      {70, 3.95},
+      {65, 3.91},
+      {60, 3.87},
+      {55, 3.85},
+      {50, 3.84},
+      {45, 3.82},
+      {40, 3.8},
+      {35, 3.79},
+      {30, 3.77},
+      {25, 3.75},
+      {20, 3.73},
+      {15, 3.71},
+      {10, 3.69},
+      {5, 3.61},
+      {0, 3.27},
     }};
 
     if (voltage >= lut.cbegin()->voltageThresh) return 100;

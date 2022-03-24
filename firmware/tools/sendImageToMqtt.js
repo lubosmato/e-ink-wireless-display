@@ -7,7 +7,7 @@ const sendImage = async () => {
   console.log("Connecting to MQTT...")
   const client = await mqtt.connectAsync("mqtts://grow.lubosmatejcik.cz:8883", {
     username: "esp32",
-    password: "65G@j!74Cfg6%$sR8x",
+    password: "65G@j!74Cfg6%$sR8x", // whoops :)
   })
 
   if (!client.connected || client.disconnected) throw new Error("Could not connect to MQTT server")

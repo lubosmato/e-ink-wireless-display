@@ -185,8 +185,8 @@ struct App {
     const int capacity = power.voltageToCapacity(batteryVoltage);
     logW(TAG_APP, "Battery capacity %d%%", capacity);
 
-    if (capacity == 0) {
-      logE(TAG_APP, "Battery capacity at 0%%. Going to sleep...");
+    if (capacity < 20) {
+      logE(TAG_APP, "Battery capacity at 20%%. Going to sleep...");
       esp_sleep_enable_timer_wakeup(std::chrono::microseconds{sleepTime}.count());
       esp_deep_sleep_start();
     }
@@ -238,8 +238,71 @@ struct App {
 
   void drawDisplay() {
     logW(TAG_APP, "drawing display");
+
+    uint16_t capacity = ((power.voltageToCapacity(batteryVoltage) - 20) * 7) / 5; // random visualisation adjustment
+
+    capacity = (capacity / 10) * 10; // remove units
+    drawBattery(displayWidth - 32, displayHeight - 32, capacity);
+
     display.showImage(0, 0, displayWidth, displayHeight);
     display.disconnect();
+  }
+
+  void drawBattery(int startX, int startY, int capacity) {
+    std::fill(pixelBuffer.begin(), pixelBuffer.end(), 0xff);
+
+    constexpr uint16_t iconWidth = 32;
+    constexpr uint16_t iconHeight = 32;
+
+    constexpr uint16_t batteryHeight = (iconHeight * 90) / 100; // 90% (5% vertical margin)
+    constexpr uint16_t topNotchHeight = (iconHeight * 20) / 100; // 10%
+    constexpr uint16_t batteryThickness = (iconWidth * 50) / 100; // 50%
+
+    for (int y = (iconHeight - batteryHeight) / 2; y <= (iconHeight - batteryHeight) / 2 + topNotchHeight; y++) {
+      for (int x = (iconWidth - (batteryThickness / 2)) / 2;
+           x <= (iconWidth - (batteryThickness / 2)) / 2 + (batteryThickness / 2);
+           x++) {
+        uint32_t pixelIndex = y * iconWidth + x;
+        uint32_t bufferIndex = pixelIndex / pixelsToByteRatio;
+
+        pixelBuffer[bufferIndex] = 0x00;
+      }
+    }
+
+    for (int y = (iconHeight - batteryHeight + topNotchHeight) / 2;
+         y <= (iconHeight - batteryHeight) / 2 + batteryHeight;
+         y++) {
+      for (int x = (iconWidth - batteryThickness) / 2; x <= (iconWidth - batteryThickness) / 2 + batteryThickness;
+           x++) {
+        uint32_t pixelIndex = y * iconWidth + x;
+        uint32_t bufferIndex = pixelIndex / pixelsToByteRatio;
+
+        uint8_t color = 0x0f;
+
+        float relativeY = 1.0f - (y - (iconHeight - batteryHeight + topNotchHeight) / 2.0f) / batteryHeight;
+
+        if (relativeY * 100 < capacity) {
+          color = 0x00;
+        }
+
+        const bool isVerticalBorder = y == (iconHeight - batteryHeight + topNotchHeight) / 2 ||
+          y == (iconHeight - batteryHeight) / 2 + batteryHeight;
+        const bool isHorizontalBorder = ((pixelIndex % 2 == 0) && x == (iconWidth - batteryThickness) / 2) ||
+          ((pixelIndex % 2 == 1) && x == (iconWidth - batteryThickness) / 2 + batteryThickness);
+
+        const bool isBorder = isVerticalBorder || isHorizontalBorder;
+
+        if (isBorder) color = 0x00;
+
+        if ((pixelIndex % 2) == 0) {
+          pixelBuffer[bufferIndex] = (color & 0x0f) << 4;
+        } else {
+          pixelBuffer[bufferIndex] |= (color & 0x0f);
+        }
+      }
+    }
+
+    display.sendImage(startX, startY, iconWidth, iconHeight);
   }
 
   void publishStartupDeviceInfo() {
