@@ -2,6 +2,7 @@
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
+#include "essentials/config.hpp"
 #include "simple_logger.hpp"
 
 #include <array>
@@ -15,7 +16,7 @@ struct Power {
   gpio_num_t enable5VPin = GPIO_NUM_21;
   esp_adc_cal_characteristics_t adcChars{};
 
-  Power() {
+  Power(essentials::Config::Value<std::string>& adcA, essentials::Config::Value<std::string>& adcB) {
     gpio_config_t conf{};
 
     conf.pin_bit_mask = (1ull << batteryVoltagePin);
@@ -44,42 +45,9 @@ struct Power {
     constexpr uint32_t defaultVRef = 1100;
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, defaultVRef, &adcChars);
 
-    // TODO use custom calibration values (manufacture's efuse values are inaccurate)
-    // adcChars.coeff_a = 56000;
-    // adcChars.coeff_b = 72;
-    adcChars.coeff_a = 49505;
-    adcChars.coeff_b = 269;
+    adcChars.coeff_a = std::stoi(*adcA);
+    adcChars.coeff_b = std::stoi(*adcB);
     // corrected voltage = (sample * coeff_a) / 65536 + coeff_b
-
-    // Vmet ADC
-    // 1810 1871
-    // 1820 1884
-    // 1835 1889
-    // 1845 1905
-    // 1860 1906
-    // 1870 1926
-    // 1880 1958
-    // 1910 1975
-    // 2016 2009
-    // 2010 2073
-    // 2055 2093
-
-    /* RAW ADC | Volt meter
-
-    1870 1675
-    1927 1725
-    1978 1770
-    2017 1800 ? (maybe vice versa?)
-    2281 1975
-    2359 2035
-    2365 2060
-    2367 2080
-    2367 2080
-    2367 2080
-    2367 2080
-    2367 2080
-    2367 2080
-    */
   }
 
   void set5VOutput(bool enable) const {
@@ -168,6 +136,6 @@ struct Power {
       logE(TAG_POWER, "Battery under voltage: %fV", voltage);
     }
 
-    return {voltage, rawSum};
+    return {voltage, rawSum / numberOfSamples};
   }
 };

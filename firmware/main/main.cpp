@@ -32,7 +32,9 @@ struct App {
   es::Config config{configStorage};
   es::Config::Value<std::string> ssid = config.get<std::string>("ssid");
   es::Config::Value<std::string> wifiPass = config.get<std::string>("wifiPass");
-  es::Config::Value<std::string> vComDefault = mqttConfig.get<std::string>("vcom", "-1.8");
+  es::Config::Value<std::string> vComDefault = config.get<std::string>("vcom", "-1.8");
+  es::Config::Value<std::string> adcCalibA = config.get<std::string>("adcA", "49505");
+  es::Config::Value<std::string> adcCalibB = config.get<std::string>("adcB", "269");
 
   es::Esp32Storage mqttStorage{"mqtt"};
   es::Config mqttConfig{mqttStorage};
@@ -43,7 +45,7 @@ struct App {
   es::Wifi wifi{};
   std::unique_ptr<es::Mqtt> mqtt{};
   std::vector<std::unique_ptr<es::Mqtt::Subscription>> subs{};
-  Power power{};
+  Power power{adcCalibA, adcCalibB};
   float batteryVoltage{};
   uint32_t batteryRaw{};
 
@@ -57,6 +59,8 @@ struct App {
       {"MQTT Username", mqttUser},
       {"MQTT Password", mqttPass},
       {"VCom", vComDefault},
+      {"ADC calib A", adcCalibA},
+      {"ADC calib B", adcCalibB},
     }};
 
   pngle_t* pngle = nullptr;
@@ -72,7 +76,7 @@ struct App {
   static constexpr uint16_t displayWidth = 1200;
   static constexpr uint16_t displayHeight = 825;
 
-  static constexpr auto sleepTime = 5s; // TODO don't forget to change
+  static constexpr auto sleepTime = 60s;
 
   void run() {
     checkBattery();
@@ -82,15 +86,15 @@ struct App {
     display.powerUp();
     wifi.connect(*ssid, *wifiPass);
 
+    logW(TAG_APP, "VCom %f", vcom);
+    display.connect(vcom);
+
     logW(TAG_APP, "Waiting for wifi connection...");
     int tryCount = 0;
     while (!wifi.isConnected() && tryCount < 1000) {
       tryCount++;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
-
-    logW(TAG_APP, "VCom %f", vcom);
-    display.connect(vcom);
 
     auto info = display.info();
     logW(TAG_APP,
@@ -171,6 +175,12 @@ struct App {
       }
     }));
 
+    // subscribe to "ping" topic and react to it by sending "pong" message back
+    subs.emplace_back(mqtt->subscribe("ping", es::Mqtt::Qos::Qos0, [this](const es::Mqtt::Data& chunk) {
+      logI(TAG_APP, "got ping message");
+      mqtt->publish("pong", chunk.data, es::Mqtt::Qos::Qos0, false);
+    }));
+
     // 20s timeout for sleeping
     vTaskDelay(pdMS_TO_TICKS(20000));
     timedOut = true;
@@ -242,7 +252,7 @@ struct App {
     uint16_t capacity = ((power.voltageToCapacity(batteryVoltage) - 20) * 7) / 5; // random visualisation adjustment
 
     capacity = (capacity / 10) * 10; // remove units
-    drawBattery(displayWidth - 32, displayHeight - 32, capacity);
+    drawBattery(displayWidth - 16, displayHeight - 16, capacity);
 
     display.showImage(0, 0, displayWidth, displayHeight);
     display.disconnect();
@@ -251,8 +261,8 @@ struct App {
   void drawBattery(int startX, int startY, int capacity) {
     std::fill(pixelBuffer.begin(), pixelBuffer.end(), 0xff);
 
-    constexpr uint16_t iconWidth = 32;
-    constexpr uint16_t iconHeight = 32;
+    constexpr uint16_t iconWidth = 16;
+    constexpr uint16_t iconHeight = 16;
 
     constexpr uint16_t batteryHeight = (iconHeight * 90) / 100; // 90% (5% vertical margin)
     constexpr uint16_t topNotchHeight = (iconHeight * 20) / 100; // 10%
@@ -306,6 +316,9 @@ struct App {
   }
 
   void publishStartupDeviceInfo() {
+    const auto rssi = wifi.rssi();
+    if (rssi) mqtt->publish("info/startup/rssi", *rssi, es::Mqtt::Qos::Qos0, false);
+
     mqtt->publish("info/startup/freeHeap", deviceInfo.freeHeap(), es::Mqtt::Qos::Qos0, false);
     mqtt->publish("info/startup/totalHeap", deviceInfo.totalHeap(), es::Mqtt::Qos::Qos0, false);
     // elapsed time before connecting to MQTT
