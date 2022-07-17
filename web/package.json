@@ -1,0 +1,18 @@
+{
+  "name": "e-ink",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "packageManager": "yarn@3.2.1",
+  "workspaces": [
+    "api",
+    "www"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,www 'yarn workspace api dev' 'yarn workspace www dev'",
+    "postinstall": "echo 'global postinstall'"
+  },
+  "devDependencies": {
+    "concurrently": "^7.2.2"
+  }
+}
