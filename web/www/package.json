@@ -40,12 +40,11 @@
   },
   "type": "module",
   "dependencies": {
-    "@apollo/client": "^3.6.9",
+    "@apollo/client": "beta",
     "@fontsource/fira-mono": "^4.5.0",
     "cookie": "^0.4.1",
     "graphql": "^16.5.0",
-    "graphql-tag": "^2.12.6",
-    "react": "^18.2.0"
+    "graphql-tag": "^2.12.6"
   },
   "packageManager": "yarn@3.2.1"
 }
