@@ -1,13 +1,27 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DB_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model Dummy {
-  id   String @id @default(cuid())
-  name String
+generator pothos {
+  provider = "prisma-pothos-types"
+  clientOutput = "@prisma/client"
+  output = "../src/generated/prisma-pothos.ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @default(cuid())
+  displayName String
+  posts       Post[]
+}
+
+model Post {
+  id      String @id @default(cuid())
+  content String
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
 }

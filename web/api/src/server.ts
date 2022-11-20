@@ -1,16 +1,17 @@
-import { ApolloServer } from "apollo-server"
-
 import { schema } from "./schema"
-import { createContext } from "./context"
+import { Context, createContext } from "./context"
 
-const server = new ApolloServer({
-  schema,
-  context: createContext,
-  csrfPrevention: true, // see below for more about this
+import { createYoga } from "graphql-yoga"
+import { createServer } from "node:http"
+
+const yoga = createYoga<Context>({
   cors: {
     credentials: true,
-    origin: true,
+    origin: [process.env.WWW_URL ?? "", "https://studio.apollographql.com"],
   },
+  context: createContext,
+  schema,
+  graphqlEndpoint: "/",
 })
 
-export default server
+export const server = createServer(yoga)

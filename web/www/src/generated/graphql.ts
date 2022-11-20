@@ -28,20 +28,99 @@ export type Scalars = {
   Float: number
 }
 
-export type Query = {
-  __typename?: "Query"
-  hello?: Maybe<Scalars["String"]>
+/** Long necks, cool patterns, taller than you. */
+export type Calendar = {
+  __typename?: "Calendar"
+  name: Scalars["String"]
 }
 
-export type HelloQueryVariables = Exact<{ [key: string]: never }>
+export type Post = {
+  __typename?: "Post"
+  content: Scalars["String"]
+  id: Scalars["ID"]
+  user: User
+}
 
-export type HelloQuery = { __typename?: "Query"; hello?: string | null }
+export type Query = {
+  __typename?: "Query"
+  calendar: Calendar
+  hello: Scalars["String"]
+  posts: Array<Post>
+}
 
-export const HelloDoc = gql`
-  query Hello {
-    hello
+export type QueryHelloArgs = {
+  name?: InputMaybe<Scalars["String"]>
+}
+
+export type User = {
+  __typename?: "User"
+  id: Scalars["ID"]
+  title: Scalars["String"]
+}
+
+export type EventsQueryVariables = Exact<{ [key: string]: never }>
+
+export type EventsQuery = {
+  __typename?: "Query"
+  calendar: { __typename?: "Calendar"; name: string }
+}
+
+export type HelloQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>
+}>
+
+export type HelloQuery = { __typename?: "Query"; hello: string }
+
+export const EventsDoc = gql`
+  query Events {
+    calendar {
+      name
+    }
   }
 `
+export const HelloDoc = gql`
+  query Hello($name: String) {
+    hello(name: $name)
+  }
+`
+export const Events = (
+  options: Omit<WatchQueryOptions<EventsQueryVariables>, "query">,
+): Readable<
+  ApolloQueryResult<EventsQuery> & {
+    query: ObservableQuery<EventsQuery, EventsQueryVariables>
+  }
+> => {
+  const q = client.watchQuery({
+    query: EventsDoc,
+    ...options,
+  })
+  const result = readable<
+    ApolloQueryResult<EventsQuery> & {
+      query: ObservableQuery<EventsQuery, EventsQueryVariables>
+    }
+  >(
+    {
+      data: {} as any,
+      loading: true,
+      error: undefined,
+      networkStatus: 1,
+      query: q,
+    },
+    (set) => {
+      q.subscribe((v: any) => {
+        set({ ...v, query: q })
+      })
+    },
+  )
+  return result
+}
+
+export const AsyncEvents = (
+  options: Omit<QueryOptions<EventsQueryVariables>, "query">,
+) => {
+  return client.query<EventsQuery>({ query: EventsDoc, ...options })
+}
+
 export const Hello = (
   options: Omit<WatchQueryOptions<HelloQueryVariables>, "query">,
 ): Readable<
@@ -53,7 +132,7 @@ export const Hello = (
     query: HelloDoc,
     ...options,
   })
-  var result = readable<
+  const result = readable<
     ApolloQueryResult<HelloQuery> & {
       query: ObservableQuery<HelloQuery, HelloQueryVariables>
     }

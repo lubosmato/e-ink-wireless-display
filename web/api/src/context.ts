@@ -1,28 +1,11 @@
-import { PrismaClient } from "@prisma/client"
+import { IncomingMessage } from "http"
 
-declare global {
-  // allow global `var` declarations
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined
-}
+export interface Context {}
 
-let prisma: PrismaClient
+export function createContext({ req }: { req: IncomingMessage }): Context {
+  // const idToken = req.headers.authorization?.replace("Bearer ", "") ?? ""
 
-if (process.env.ENV_SHORT !== "local") {
-  prisma = new PrismaClient()
-} else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient()
+  return {
+    // getUser: () => getUser(idToken),
   }
-  prisma = global.prisma
-}
-
-export default prisma
-
-export interface Context {
-  prisma: PrismaClient
-}
-
-export function createContext(): Context {
-  return { prisma }
 }

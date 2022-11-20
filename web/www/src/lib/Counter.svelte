@@ -1,6 +1,6 @@
 <script lang="ts">
   import { spring } from "svelte/motion"
-  import { AsyncHello, Hello } from "../generated/graphql"
+  import { AsyncEvents, AsyncHello, Events, Hello } from "../generated/graphql"
 
   let count = 0
 
@@ -18,16 +18,26 @@
   }
 
   $: test = Hello({
+    variables: {
+      name: "Test", // TODO TS is broken
+    },
     fetchPolicy: "cache-and-network",
   })
 </script>
 
 {$test.data.hello}
 
-{#await AsyncHello({})}
+{#await AsyncHello({ variables: { name: "Async" } })}
   Loading...
 {:then hello}
   <strong>{hello.data.hello}</strong>
+{/await}
+
+<br />
+{#await AsyncEvents({})}
+  Loading calendar...
+{:then calendar}
+  <strong>{calendar.data.calendar.name}</strong>
 {/await}
 
 <div class="counter">
