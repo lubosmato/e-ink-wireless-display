@@ -1,7 +1,14 @@
-/** @type {import('eslint').Linter.Config} */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const tsParser = require("@typescript-eslint/parser")
+
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
+  parserOptions: {
+    sourceType: "module",
+    ecmaVersion: 2020,
+    extraFileExtensions: [".svelte"],
+  },
   plugins: ["@typescript-eslint"],
   extends: [
     "eslint:recommended",
@@ -9,20 +16,17 @@ module.exports = {
     "prettier",
     "plugin:prettier/recommended",
     "plugin:svelte/recommended",
+    "plugin:svelte/prettier",
   ],
   overrides: [
     {
       files: ["*.svelte"],
       parser: "svelte-eslint-parser",
       parserOptions: {
-        parser: "@typescript-eslint/parser",
+        parser: tsParser,
       },
     },
   ],
-  parserOptions: {
-    sourceType: "module",
-    ecmaVersion: 2020,
-  },
   env: {
     browser: true,
     es2017: true,

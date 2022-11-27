@@ -22,15 +22,17 @@
     "@sveltejs/adapter-auto": "next",
     "@sveltejs/kit": "next",
     "@types/cookie": "^0.5.1",
+    "@types/lodash": "^4.14.190",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
-    "@typescript-eslint/parser": "^5.27.0",
+    "@typescript-eslint/parser": "^5.44.0",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-svelte": "^2.2.0",
+    "eslint-plugin-svelte": "^2.13.0",
     "graphql-codegen-svelte-apollo": "^1.1.0",
-    "prettier": "^2.6.2",
-    "prettier-plugin-svelte": "^2.7.0",
+    "prettier": "^2.8.0",
+    "prettier-plugin-svelte": "^2.8.1",
+    "sass": "^1.56.1",
     "svelte": "^3.46.0",
     "svelte-check": "^2.7.1",
     "svelte-preprocess": "^4.10.6",
@@ -41,10 +43,14 @@
   "type": "module",
   "dependencies": {
     "@apollo/client": "beta",
-    "@fontsource/fira-mono": "^4.5.0",
+    "@fontsource/source-sans-pro": "^4.5.11",
+    "@mdi/js": "^7.0.96",
     "cookie": "^0.4.1",
+    "date-fns": "^2.29.3",
     "graphql": "^16.5.0",
-    "graphql-tag": "^2.12.6"
+    "graphql-tag": "^2.12.6",
+    "lodash": "^4.17.21",
+    "mdi-svelte": "^1.1.2"
   },
   "packageManager": "yarn@3.2.1"
 }

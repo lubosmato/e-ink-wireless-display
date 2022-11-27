@@ -1,5 +1,0 @@
-query Events {
-  calendar {
-    name
-  }
-}

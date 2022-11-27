@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --transpile-only src/index.ts",
+    "dev": "ts-node-dev --transpile-only --exit-child --respawn src/index.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
     "lint": "eslint --ext .ts --ext .json ./",
@@ -15,11 +15,14 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@googleapis/calendar": "^3.0.0",
     "@graphql-yoga/node": "^3.0.0",
     "@pothos/core": "^3.22.9",
     "@pothos/plugin-prisma": "^3.35.8",
     "@prisma/client": "4.6.1",
-    "graphql": "^16.6.0"
+    "date-fns": "^2.29.3",
+    "graphql": "^16.6.0",
+    "graphql-scalars": "^1.20.1"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

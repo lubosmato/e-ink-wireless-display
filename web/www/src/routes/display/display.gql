@@ -1,0 +1,59 @@
+fragment Event on Event {
+  id
+  summary
+  start
+  end
+  description
+  status
+  visibility
+  attendees {
+    displayName
+    email
+    optional
+    organizer
+    responseStatus
+    self
+  }
+  colorId
+  created
+  location
+  updated
+}
+
+query Display {
+  display {
+    id
+    calendar {
+      id
+      week {
+        ...Event
+      }
+    }
+    weather {
+      id
+      prediction {
+        code
+        temperature
+        presentPrecipitation
+        sunriseAt
+        sunsetAt
+        hourly {
+          precipitation
+          rain
+          showers
+          snowfall
+          temperature
+          time
+          weatherCode
+        }
+      }
+    }
+    exchange {
+      id
+      from
+      to
+      rate
+    }
+    image
+  }
+}

@@ -1,0 +1,232 @@
+enum AttendeeResponseStatus {
+  accepted
+  declined
+  needsAction
+  tentative
+}
+
+type Calendar {
+  id: String!
+  week: [Event!]!
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+type Display {
+  calendar: Calendar!
+  exchange: Exchange!
+  id: String!
+  image: String!
+  weather: Weather!
+}
+
+type Event {
+  attendees: [EventAttendee!]!
+  colorId: String
+  created: Date!
+  creator: Person!
+  description: String
+  end: Date
+  eventType: EventType!
+  htmlLink: String!
+  id: String!
+  location: String
+  organizer: Person!
+  reminders: EventReminders!
+  start: Date
+  status: EventStatus!
+  summary: String
+  transparency: EventTransparency!
+  updated: Date!
+  visibility: EventVisibility!
+}
+
+type EventAttendee {
+  displayName: String
+  email: String
+  optional: Boolean
+  organizer: Boolean
+  responseStatus: AttendeeResponseStatus!
+  self: Boolean!
+}
+
+type EventReminder {
+  method: String!
+  minutes: Float!
+}
+
+type EventReminders {
+  overrides: [EventReminder!]!
+  useDefault: Boolean!
+}
+
+enum EventStatus {
+  cancelled
+  confirmed
+  tentative
+}
+
+enum EventTransparency {
+  opaque
+  transparent
+}
+
+enum EventType {
+  default
+  focusTime
+  outOfOffice
+}
+
+enum EventVisibility {
+  confidential
+  default
+  private
+  public
+}
+
+type Exchange {
+  """currency code of currency being converted from. eg. USD"""
+  from: String!
+  id: String!
+  rate: Float!
+
+  """currency code of currency being converted to. eg. EUR"""
+  to: String!
+}
+
+type Person {
+  displayName: String
+  email: String
+  id: String
+  self: Boolean!
+}
+
+type Post {
+  content: String!
+  id: ID!
+  user: User!
+}
+
+type Query {
+  display: Display!
+  hello(name: String): String!
+  posts: [Post!]!
+}
+
+type User {
+  id: ID!
+  title: String!
+}
+
+type Weather {
+  id: String!
+  prediction: WeatherData!
+}
+
+enum WeatherCode {
+  """Clear sky"""
+  CLEAR_SKY
+
+  """Depositing rime fog"""
+  DEPOSITING_RIME_FOG
+
+  """Drizzle: Dense"""
+  DRIZZLE_DENSE
+
+  """Drizzle: Light"""
+  DRIZZLE_LIGHT
+
+  """Drizzle: Moderate"""
+  DRIZZLE_MODERATE
+
+  """Fog"""
+  FOG
+
+  """Freezing Drizzle: Dense"""
+  FREEZING_DRIZZLE_DENSE
+
+  """Freezing Drizzle: Light"""
+  FREEZING_DRIZZLE_LIGHT
+
+  """Freezing Rain: Heavy"""
+  FREEZING_RAIN_HEAVY
+
+  """Freezing Rain: Light"""
+  FREEZING_RAIN_LIGHT
+
+  """Mainly clear"""
+  MAINLY_CLEAR
+
+  """Overcast"""
+  OVERCAST
+
+  """Partly cloudy"""
+  PARTLY_CLOUDY
+
+  """Rain: Heavy"""
+  RAIN_HEAVY
+
+  """Rain: Moderate"""
+  RAIN_MODERATE
+
+  """Rain showers: Moderate"""
+  RAIN_SHOWERS_MODERATE
+
+  """Rain showers: Slight"""
+  RAIN_SHOWERS_SLIGHT
+
+  """Rain showers: Violent"""
+  RAIN_SHOWERS_VIOLENT
+
+  """Rain: Slight"""
+  RAIN_SLIGHT
+
+  """Snow fall: Heavy"""
+  SNOW_FALL_HEAVY
+
+  """Snow fall: Moderate"""
+  SNOW_FALL_MODERATE
+
+  """Snow fall: Slight"""
+  SNOW_FALL_SLIGHT
+
+  """Snow grains"""
+  SNOW_GRAINS
+
+  """Snow showers: Heavy"""
+  SNOW_SHOWERS_HEAVY
+
+  """Snow showers: Slight"""
+  SNOW_SHOWERS_SLIGHT
+
+  """Thunderstorm: Heavy hail"""
+  THUNDERSTORM_HEAVY_HAIL
+
+  """Thunderstorm: Slight hail"""
+  THUNDERSTORM_SLIGHT_HAIL
+
+  """Thunderstorm: Slight or moderate"""
+  THUNDERSTORM_SLIGHT_OR_MODERATE
+}
+
+type WeatherData {
+  code: WeatherCode!
+  hourly: [WeatherSample!]!
+  presentPrecipitation: Float!
+  sunriseAt: Date!
+  sunsetAt: Date!
+  temperature: Float!
+}
+
+type WeatherSample {
+  precipitation: Float!
+  rain: Float!
+  showers: Float!
+  snowfall: Float!
+  temperature: Float!
+  time: Date!
+  weatherCode: WeatherCode!
+}

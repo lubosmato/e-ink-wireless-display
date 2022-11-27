@@ -2,5 +2,6 @@
   "tabWidth": 2,
   "trailingComma": "all",
   "arrowParens": "always",
-  "semi": false
+  "semi": false,
+  "plugins": ["prettier-plugin-svelte"]
 }

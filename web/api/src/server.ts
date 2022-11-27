@@ -3,6 +3,12 @@ import { Context, createContext } from "./context"
 
 import { createYoga } from "graphql-yoga"
 import { createServer } from "node:http"
+import { writeFileSync } from "node:fs"
+import { printSchema } from "graphql"
+
+if (process.env.ENV_SHORT === "local") {
+  writeFileSync("./src/generated/schema.graphql", printSchema(schema))
+}
 
 const yoga = createYoga<Context>({
   cors: {
