@@ -1,7 +1,7 @@
 import { server } from "./server"
 
-const port = process.env.API_PORT ?? "4000"
+const port = parseInt(process.env.API_PORT ?? "4000")
 
-server.listen(port, () => {
-  console.info(`Server is running on http://localhost:${port}/`)
+server.listen(port, "0.0.0.0", () => {
+  console.info(`Server is running port ${port}/`)
 })

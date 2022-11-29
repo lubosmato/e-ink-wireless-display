@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Weather, WeatherCode } from "src/generated/graphql"
   import Icon from "mdi-svelte"
-  import { floor } from "lodash"
+  import _ from "lodash"
   import {
     mdiWeatherCloudy,
     mdiWeatherCloudyAlert,
@@ -90,11 +90,11 @@
     <Icon size="4" path={icons[weather.prediction.code]} color="black" />
   </div>
   <div class="temp">
-    {floor(weather.prediction.temperature, 0)}
+    {_.floor(weather.prediction.temperature, 0)}
     <span class="celsius">°C</span>
   </div>
   <div class="precipitation">
-    {floor(weather.prediction.presentPrecipitation, 0)} mm
+    {_.floor(weather.prediction.presentPrecipitation, 0)} mm
     <Icon
       path={weather.prediction.presentPrecipitation > 0
         ? mdiWaterAlertOutline

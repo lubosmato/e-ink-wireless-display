@@ -45,6 +45,8 @@
     "@apollo/client": "beta",
     "@fontsource/source-sans-pro": "^4.5.11",
     "@mdi/js": "^7.0.96",
+    "@types/apollo-upload-client": "^17.0.2",
+    "apollo-upload-client": "^17.0.0",
     "cookie": "^0.4.1",
     "date-fns": "^2.29.3",
     "graphql": "^16.5.0",

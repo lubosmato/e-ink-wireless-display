@@ -6,7 +6,8 @@
   "packageManager": "yarn@3.2.1",
   "workspaces": [
     "api",
-    "www"
+    "www",
+    "updater"
   ],
   "scripts": {
     "dev": "concurrently -n api,www 'yarn workspace api dev' 'yarn workspace www dev'",

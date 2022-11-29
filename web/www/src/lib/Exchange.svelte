@@ -2,7 +2,7 @@
   import { mdiArrowRight } from "@mdi/js"
   import Icon from "mdi-svelte"
   import type { Exchange } from "src/generated/graphql"
-  import { floor } from "lodash"
+  import _ from "lodash"
 
   export let exchange: Exchange
 </script>
@@ -13,7 +13,7 @@
     <div class="arrow">
       <Icon path={mdiArrowRight} />
     </div>
-    <div class="value">{floor(exchange.rate, 3)}</div>
+    <div class="value">{_.floor(exchange.rate, 3)}</div>
     <div class="currency">{exchange.to}</div>
   </div>
 </div>

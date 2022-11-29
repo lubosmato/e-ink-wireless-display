@@ -1,0 +1,85 @@
+version: '3'
+
+services:
+  # db:
+  #   image: postgres:latest
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: pass
+  #     POSTGRES_DB: universal
+  #   ports:
+  #     - 5432:5432
+
+  api:
+    hostname: displayapi
+    container_name: api
+    build:
+      context: ./api/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=http://displayapi:4000/
+      - WWW_URL=http://displaywww:3000
+    ports:
+      - 4000:4000
+    networks:
+      - net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2M"
+        max-file: "10"
+
+  www:
+    hostname: displaywww
+    container_name: www
+    build:
+      context: ./www/
+      dockerfile: Dockerfile
+      args:
+        # TODO do not use build args (vite env vars and env vars workaround)
+        - VITE_API_URL=http://localhost:4000/
+    restart: unless-stopped
+    depends_on:
+      - api
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    environment:
+      - VITE_API_URL=http://displayapi:4000/
+    networks:
+      - net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2M"
+        max-file: "10"
+
+  updater:
+    container_name: updater
+    build:
+      context: ./updater/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - WWW_URL=http://displaywww:3000
+    depends_on:
+      - www
+    networks:
+      - net
+    cap_add:
+      - SYS_ADMIN
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2M"
+        max-file: "10"
+
+networks:
+  net:
+    driver: bridge

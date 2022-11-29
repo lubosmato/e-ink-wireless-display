@@ -4,6 +4,7 @@ import type {
   ObservableQuery,
   WatchQueryOptions,
   QueryOptions,
+  MutationOptions,
 } from "@apollo/client"
 import { readable } from "svelte/store"
 import type { Readable } from "svelte/store"
@@ -28,6 +29,8 @@ export type Scalars = {
   Float: number
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   Date: string
+  /** The `File` scalar type represents a file upload. */
+  File: any
 }
 
 export enum AttendeeResponseStatus {
@@ -128,6 +131,15 @@ export type Exchange = {
   rate: Scalars["Float"]
   /** currency code of currency being converted to. eg. EUR */
   to: Scalars["String"]
+}
+
+export type Mutation = {
+  __typename?: "Mutation"
+  uploadWallpaper: Scalars["Boolean"]
+}
+
+export type MutationUploadWallpaperArgs = {
+  image: Scalars["File"]
 }
 
 export type Person = {
@@ -339,6 +351,15 @@ export type DisplayQuery = {
   }
 }
 
+export type UploadWallpaperMutationVariables = Exact<{
+  image: Scalars["File"]
+}>
+
+export type UploadWallpaperMutation = {
+  __typename?: "Mutation"
+  uploadWallpaper: boolean
+}
+
 export const EventFragmentDoc = gql`
   fragment Event on Event {
     id
@@ -402,6 +423,11 @@ export const DisplayDoc = gql`
   }
   ${EventFragmentDoc}
 `
+export const UploadWallpaperDoc = gql`
+  mutation UploadWallpaper($image: File!) {
+    uploadWallpaper(image: $image)
+  }
+`
 export const Display = (
   options: Omit<WatchQueryOptions<DisplayQueryVariables>, "query">,
 ): Readable<
@@ -438,4 +464,20 @@ export const AsyncDisplay = (
   options: Omit<QueryOptions<DisplayQueryVariables>, "query">,
 ) => {
   return client.query<DisplayQuery>({ query: DisplayDoc, ...options })
+}
+
+export const UploadWallpaper = (
+  options: Omit<
+    MutationOptions<any, UploadWallpaperMutationVariables>,
+    "mutation"
+  >,
+) => {
+  const m = client.mutate<
+    UploadWallpaperMutation,
+    UploadWallpaperMutationVariables
+  >({
+    mutation: UploadWallpaperDoc,
+    ...options,
+  })
+  return m
 }

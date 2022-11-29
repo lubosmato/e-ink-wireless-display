@@ -1,5 +1,6 @@
 import SchemaBuilder from "@pothos/core"
 import PrismaPlugin from "@pothos/plugin-prisma"
+import { GraphQLScalarType } from "graphql"
 import { DateTimeResolver } from "graphql-scalars"
 import type PrismaTypes from "./generated/prisma-pothos"
 import { prisma } from "./prisma"
@@ -10,6 +11,7 @@ export const builder = new SchemaBuilder<{
       Input: Date
       Output: Date
     }
+    File: { Input: File; Output: File }
   }
   PrismaTypes: PrismaTypes
 }>({
@@ -21,4 +23,16 @@ export const builder = new SchemaBuilder<{
   },
 })
 
+builder.mutationType({})
+
 builder.addScalarType("Date", DateTimeResolver, {})
+builder.addScalarType(
+  "File",
+  new GraphQLScalarType<File, File>({
+    name: "File",
+    description: "The `File` scalar type represents a file upload.",
+    serialize: (a) => a as File,
+    parseValue: (a) => a as File,
+  }),
+  {},
+)

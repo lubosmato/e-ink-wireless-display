@@ -1,6 +1,6 @@
 <script lang="ts">
   import { format } from "date-fns"
-  import cs from "date-fns/locale/cs"
+  import cs from "date-fns/locale/cs/index"
   import { readable } from "svelte/store"
 
   const now = readable(new Date(), (set) => {

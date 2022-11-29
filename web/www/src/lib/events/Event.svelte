@@ -5,7 +5,7 @@
     formatDuration,
     intervalToDuration,
   } from "date-fns"
-  import cs from "date-fns/locale/cs"
+  import cs from "date-fns/locale/cs/index"
   import type { DisplayQuery } from "src/generated/graphql"
 
   export let brief = false

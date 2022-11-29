@@ -13,7 +13,9 @@ if (process.env.ENV_SHORT === "local") {
 const yoga = createYoga<Context>({
   cors: {
     credentials: true,
-    origin: [process.env.WWW_URL ?? "", "https://studio.apollographql.com"],
+    origin: "*",
+    // TODO solve hostnames with docker
+    // origin: [process.env.WWW_URL ?? "", "https://studio.apollographql.com"],
   },
   context: createContext,
   schema,
