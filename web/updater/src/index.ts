@@ -27,7 +27,7 @@ const captureBlackWhiteImage = async (url: string): Promise<Buffer> => {
     .on('pageerror', ({ message }) => console.log(message))
     
   await page.goto(url, {
-    waitUntil: "load"
+    waitUntil: "networkidle2"
   })
   
   const imageBuffer = Buffer.from(await page.screenshot({
