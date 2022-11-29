@@ -8,4 +8,4 @@ export const load: Load = async () => {
   }
 }
 
-export const ssr = true
+export const ssr = false
