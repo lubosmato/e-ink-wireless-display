@@ -1,5 +1,7 @@
 FROM node:lts-alpine
 
+RUN apk add --no-cache tzdata
+
 ARG VITE_API_URL
 
 WORKDIR /app

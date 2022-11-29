@@ -4,6 +4,8 @@ import { createUploadLink } from "apollo-upload-client"
 
 const apiUrl = browser ? import.meta.env.VITE_API_URL : process.env.VITE_API_URL
 
+console.log(apiUrl)
+
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
   link: createUploadLink({

@@ -21,9 +21,15 @@ const captureBlackWhiteImage = async (url: string): Promise<Buffer> => {
     height: 825,
     deviceScaleFactor: 0,
   })
+  page
+    .on('console', message =>
+      console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`))
+    .on('pageerror', ({ message }) => console.log(message))
+    
   await page.goto(url, {
     waitUntil: "load"
   })
+  
   const imageBuffer = Buffer.from(await page.screenshot({
     type: "png",
     clip: {

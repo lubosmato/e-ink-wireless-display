@@ -9,7 +9,6 @@ RUN rm -rf ./node_modules/
 RUN yarn install --frozen-lockfile --production=false
 RUN yarn build
 
-
 FROM ghcr.io/puppeteer/puppeteer:latest
 
 WORKDIR /app

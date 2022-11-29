@@ -1,5 +1,7 @@
 FROM node:lts-alpine
 
+RUN apk add --no-cache tzdata
+
 WORKDIR /app
 
 ENV NODE_ENV=production
