@@ -11,6 +11,10 @@ RUN yarn build
 
 FROM ghcr.io/puppeteer/puppeteer:latest
 
+USER root
+RUN apt-get update && apt-get install fonts-noto-color-emoji
+USER pptruser
+
 WORKDIR /app
 
 ENV NODE_ENV=production
