@@ -35,7 +35,7 @@
 </script>
 
 <div class="event">
-  {#if isFullDay}
+  {#if isFullDay && !brief}
     <div class="day">den</div>
   {:else}
     <div class="day-top">{start}</div>

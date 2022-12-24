@@ -1,9 +1,12 @@
 import mqtt from "async-mqtt"
 import imagemin from "imagemin"
-import puppeteer from "puppeteer"
+import puppeteer, { Browser, Page } from "puppeteer"
 import imageminPngquant from "imagemin-pngquant"
 import Jimp from "jimp"
 import fs from "fs/promises"
+
+let browser: Browser | null = null
+let page: Page | null = null
 
 const captureBlackWhiteImage = async (url: string): Promise<Buffer> => {
   console.log("Capturing website screenshot...")
@@ -14,18 +17,21 @@ const captureBlackWhiteImage = async (url: string): Promise<Buffer> => {
   const width = 1200
   const height = 825
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage()
-  await page.setViewport({
-    width: 1200,
-    height: 825,
-    deviceScaleFactor: 0,
-  })
-  page
-    .on('console', message =>
-      console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`))
-    .on('pageerror', ({ message }) => console.log(message))
-    
+  if (!browser)
+    browser = await puppeteer.launch()
+  if (!page) {
+    page = await browser.newPage()
+    await page.setViewport({
+      width: 1200,
+      height: 825,
+      deviceScaleFactor: 0,
+    })
+    page
+      .on('console', message =>
+        console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`))
+      .on('pageerror', ({ message }) => console.log(message))
+  }
+
   await page.goto(url, {
     waitUntil: "networkidle2"
   })
@@ -95,6 +101,8 @@ async function run() {
     console.log(`Making screenshot of '${url}'`);
     const image = await captureBlackWhiteImage(url)
     await sendImage(image)
+    const memoryData = process.memoryUsage()
+    console.log(`Heap used: ${memoryData.heapUsed}`)
     await new Promise(resolve => setTimeout(resolve, sendImageInterval))
   }
 }

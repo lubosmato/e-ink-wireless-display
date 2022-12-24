@@ -1,6 +1,6 @@
-FROM node:lts-alpine
+FROM node:18-alpine3.17
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata openssl1.1-compat-dev
 
 WORKDIR /app
 
