@@ -125,12 +125,14 @@ export enum EventVisibility {
 
 export type Exchange = {
   __typename?: "Exchange"
-  /** currency code of currency being converted from. eg. USD */
-  from: Scalars["String"]
   id: Scalars["String"]
-  rate: Scalars["Float"]
-  /** currency code of currency being converted to. eg. EUR */
-  to: Scalars["String"]
+  rates: ExchangeData
+}
+
+export type ExchangeData = {
+  __typename?: "ExchangeData"
+  CZK: Array<Scalars["Float"]>
+  days: Array<Scalars["Date"]>
 }
 
 export type Mutation = {
@@ -344,9 +346,11 @@ export type DisplayQuery = {
     exchange: {
       __typename?: "Exchange"
       id: string
-      from: string
-      to: string
-      rate: number
+      rates: {
+        __typename?: "ExchangeData"
+        CZK: Array<number>
+        days: Array<string>
+      }
     }
   }
 }
@@ -414,9 +418,10 @@ export const DisplayDoc = gql`
       }
       exchange {
         id
-        from
-        to
-        rate
+        rates {
+          CZK
+          days
+        }
       }
       image
     }

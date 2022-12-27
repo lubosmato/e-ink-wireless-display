@@ -50,9 +50,10 @@ query Display {
     }
     exchange {
       id
-      from
-      to
-      rate
+      rates {
+        CZK
+        days
+      }
     }
     image
   }

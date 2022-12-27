@@ -1,46 +1,68 @@
+import { format, parse, subDays } from "date-fns"
 import { builder } from "../builder"
 
 export type Exchange = {
   id: string
-  from: string
-  to: string
 }
+
+const exchSymbols = ["CZK"] as const
+
+export type ExchaneData = {
+  days: Date[]
+} & {
+  [k in typeof exchSymbols[number]]: number[]
+}
+
+const ExchangeDataObject = builder
+  .objectRef<ExchaneData>("ExchangeData")
+  .implement({
+    fields: (t) => ({
+      days: t.expose("days", { type: ["Date"] }),
+      CZK: t.exposeFloatList("CZK"),
+    }),
+  })
 
 export const ExchangeObject = builder
   .objectRef<Exchange>("Exchange")
   .implement({
     fields: (t) => ({
       id: t.exposeString("id"),
-      from: t.exposeString("from", {
-        description: "currency code of currency being converted from. eg. USD",
-      }),
-      to: t.exposeString("to", {
-        description: "currency code of currency being converted to. eg. EUR",
-      }),
-      rate: t.float({
+      rates: t.field({
         async resolve(parent) {
-          type ExchangeRateResult = {
-            success: boolean
-            query: {
-              from: string
-              to: string
-              amount: number
-            }
-            info: {
-              rate: number
-            }
-            historical: boolean
-            date: string // eg. "2022-11-27"
-            result: number | null
-          }
+          const baseUrl = "https://api.exchangerate.host/timeseries"
+          const start = format(subDays(new Date(), 30), "yyyy-MM-dd")
+          const end = format(new Date(), "yyyy-MM-dd")
 
           const query = await fetch(
-            `https://api.exchangerate.host/convert?from=${parent.from}&to=${parent.to}`,
+            `${baseUrl}?start_date=${start}&end_date=${end}&symbols=${exchSymbols.join(
+              ",",
+            )}&base=CHF`,
           )
-          const result = (await query.json()) as ExchangeRateResult
-          if (result.result === null) throw new Error("unknown exchange rate")
-          return result.result
+
+          type ExchangeRateResult = {
+            success: boolean
+            timeseries: true
+            base: string
+            start_date: string
+            end_date: string
+            rates: {
+              [day: string]: {
+                [k in typeof exchSymbols[number]]: number
+              }
+            }
+          }
+
+          const result = (await query.json()) as ExchangeRateResult | null
+          if (result === null) throw new Error("unknown exchange rate")
+
+          return {
+            CZK: Object.values(result.rates).map((r) => r.CZK),
+            days: Object.keys(result.rates).map((day) =>
+              parse(day, "yyyy-MM-dd", new Date()),
+            ),
+          }
         },
+        type: ExchangeDataObject,
       }),
     }),
   })

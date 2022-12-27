@@ -2225,6 +2225,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.1
+  resolution: "@kurkle/color@npm:0.3.1"
+  checksum: e6be5c081bf5acfd4a1803dcd5a0733caf450e73148d5f02dc536b1ff0c60c959c23472a26c9c3c6c78ada04fb6a53c9202db9b2de8ea56f6eeec381f9cc3a1a
+  languageName: node
+  linkType: hard
+
 "@mdi/js@npm:^7.0.96":
   version: 7.1.96
   resolution: "@mdi/js@npm:7.1.96"
@@ -3981,6 +3988,15 @@ __metadata:
   version: 0.7.0
   resolution: "chardet@npm:0.7.0"
   checksum: 6fd5da1f5d18ff5712c1e0aed41da200d7c51c28f11b36ee3c7b483f3696dabc08927fc6b227735eb8f0e1215c9a8abd8154637f3eff8cada5959df7f58b024d
+  languageName: node
+  linkType: hard
+
+"chart.js@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "chart.js@npm:4.1.1"
+  dependencies:
+    "@kurkle/color": ^0.3.0
+  checksum: e195abc7b1271a0d4f616b90ac56465b639bffef8e965d26bf1fd65050011bf359fdc25e43dac1576420c1173dc1430c576fd0f953ae8b62bf257ec571424882
   languageName: node
   linkType: hard
 
@@ -9890,6 +9906,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"svelte-chartjs@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "svelte-chartjs@npm:3.1.0"
+  peerDependencies:
+    chart.js: ^3.5.0 || ^4.0.0
+    svelte: ^3.45.0
+  checksum: 995755e03f298349652e48c9a14c0932ea01d1ba4e4e43421577c3027320ad8f371617cb0a51f2b17e8618d52b2d865ee0f131b055bb6f087bc3f82beb88cd65
+  languageName: node
+  linkType: hard
+
 "svelte-check@npm:^2.7.1":
   version: 2.10.3
   resolution: "svelte-check@npm:2.10.3"
@@ -11007,6 +11033,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.27.0
     "@typescript-eslint/parser": ^5.44.0
     apollo-upload-client: ^17.0.0
+    chart.js: ^4.1.1
     cookie: ^0.4.1
     date-fns: ^2.29.3
     eslint: ^8.16.0
@@ -11022,6 +11049,7 @@ __metadata:
     prettier-plugin-svelte: ^2.8.1
     sass: ^1.56.1
     svelte: ^3.46.0
+    svelte-chartjs: ^3.1.0
     svelte-check: ^2.7.1
     svelte-preprocess: ^4.10.6
     tslib: ^2.3.1

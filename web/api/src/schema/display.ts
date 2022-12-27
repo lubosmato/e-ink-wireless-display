@@ -44,8 +44,6 @@ builder.queryFields((t) => ({
         },
         exchange: {
           id: "exchange-id",
-          from: "CHF",
-          to: "CZK",
         },
       }
     },

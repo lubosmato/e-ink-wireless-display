@@ -88,13 +88,13 @@ enum EventVisibility {
 }
 
 type Exchange {
-  """currency code of currency being converted from. eg. USD"""
-  from: String!
   id: String!
-  rate: Float!
+  rates: ExchangeData!
+}
 
-  """currency code of currency being converted to. eg. EUR"""
-  to: String!
+type ExchangeData {
+  CZK: [Float!]!
+  days: [Date!]!
 }
 
 """The `File` scalar type represents a file upload."""
