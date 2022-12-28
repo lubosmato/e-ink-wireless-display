@@ -35,6 +35,9 @@
   const max = Math.max(...(exchange.rates?.CZK ?? []))
 
   const options = {
+    animation: {
+      duration: 0,
+    },
     plugins: {
       tooltip: {
         enabled: false,
