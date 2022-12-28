@@ -4,39 +4,40 @@
   import _ from "lodash"
   import {
     mdiWeatherCloudy,
-    mdiWeatherCloudyAlert,
-    mdiWeatherCloudyArrowRight,
-    mdiWeatherCloudyClock,
+    // mdiWeatherCloudyAlert,
+    // mdiWeatherCloudyArrowRight,
+    // mdiWeatherCloudyClock,
     mdiWeatherFog,
     mdiWeatherHail,
-    mdiWeatherHazy,
-    mdiWeatherHurricane,
-    mdiWeatherLightning,
-    mdiWeatherLightningRainy,
-    mdiWeatherNight,
-    mdiWeatherNightPartlyCloudy,
+    // mdiWeatherHazy,
+    // mdiWeatherHurricane,
+    // mdiWeatherLightning,
+    // mdiWeatherLightningRainy,
+    // mdiWeatherNight,
+    // mdiWeatherNightPartlyCloudy,
     mdiWeatherPartlyCloudy,
-    mdiWeatherPartlyLightning,
-    mdiWeatherPartlyRainy,
-    mdiWeatherPartlySnowy,
-    mdiWeatherPartlySnowyRainy,
+    // mdiWeatherPartlyLightning,
+    // mdiWeatherPartlyRainy,
+    // mdiWeatherPartlySnowy,
+    // mdiWeatherPartlySnowyRainy,
     mdiWeatherPouring,
     mdiWeatherRainy,
     mdiWeatherSnowy,
     mdiWeatherSnowyHeavy,
     mdiWeatherSnowyRainy,
     mdiWeatherSunny,
-    mdiWeatherSunnyAlert,
-    mdiWeatherSunnyOff,
-    mdiWeatherSunset,
+    // mdiWeatherSunnyAlert,
+    // mdiWeatherSunnyOff,
+    // mdiWeatherSunset,
     mdiWeatherSunsetDown,
     mdiWeatherSunsetUp,
-    mdiWeatherTornado,
-    mdiWeatherWindy,
-    mdiWeatherWindyVariant,
-    mdiSnowflake,
+    // mdiWeatherTornado,
+    // mdiWeatherWindy,
+    // mdiWeatherWindyVariant,
+    // mdiSnowflake,
     mdiWaterOutline,
     mdiWaterAlertOutline,
+    mdiApiOff,
   } from "@mdi/js"
   import { format, isPast } from "date-fns"
 
@@ -75,8 +76,8 @@
 
   export let weather: Weather
 
-  const sunriseAt = new Date(weather.prediction.sunriseAt)
-  const sunsetAt = new Date(weather.prediction.sunsetAt)
+  const sunriseAt = new Date(weather.prediction?.sunriseAt ?? 0)
+  const sunsetAt = new Date(weather.prediction?.sunsetAt ?? 0)
 
   const sunShould: "rise" | "set" = isPast(sunriseAt)
     ? isPast(sunsetAt)
@@ -86,30 +87,36 @@
 </script>
 
 <div class="weather">
-  <div class="icon">
-    <Icon size="4" path={icons[weather.prediction.code]} color="black" />
-  </div>
-  <div class="temp">
-    {_.floor(weather.prediction.temperature, 0)}
-    <span class="celsius">°C</span>
-  </div>
-  <div class="precipitation">
-    {_.floor(weather.prediction.presentPrecipitation, 0)} mm
-    <Icon
-      path={weather.prediction.presentPrecipitation > 0
-        ? mdiWaterAlertOutline
-        : mdiWaterOutline}
-    />
-  </div>
-  <div class="sun">
-    <Icon
-      size="2.5"
-      path={sunShould === "set" ? mdiWeatherSunsetDown : mdiWeatherSunsetUp}
-    />
-  </div>
-  <div class="sun-time">
-    {format(sunShould === "set" ? sunsetAt : sunriseAt, "H:mm")}
-  </div>
+  {#if weather.prediction === null}
+    <div class="error">
+      <Icon path={mdiApiOff} />
+    </div>
+  {:else}
+    <div class="icon">
+      <Icon size="4" path={icons[weather.prediction.code]} color="black" />
+    </div>
+    <div class="temp">
+      {_.floor(weather.prediction.temperature, 0)}
+      <span class="celsius">°C</span>
+    </div>
+    <div class="precipitation">
+      {_.floor(weather.prediction.presentPrecipitation, 0)} mm
+      <Icon
+        path={weather.prediction.presentPrecipitation > 0
+          ? mdiWaterAlertOutline
+          : mdiWaterOutline}
+      />
+    </div>
+    <div class="sun">
+      <Icon
+        size="2.5"
+        path={sunShould === "set" ? mdiWeatherSunsetDown : mdiWeatherSunsetUp}
+      />
+    </div>
+    <div class="sun-time">
+      {format(sunShould === "set" ? sunsetAt : sunriseAt, "H:mm")}
+    </div>
+  {/if}
 </div>
 
 <style lang="sass">
@@ -127,6 +134,9 @@
       display: flex
       align-items: center
       justify-content: center
+
+  .error
+    grid-area: temp
 
   .celsius
     font-size: 1.5rem

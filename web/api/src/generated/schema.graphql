@@ -89,7 +89,7 @@ enum EventVisibility {
 
 type Exchange {
   id: String!
-  rates: ExchangeData!
+  rates: ExchangeData
 }
 
 type ExchangeData {
@@ -130,7 +130,7 @@ type User {
 
 type Weather {
   id: String!
-  prediction: WeatherData!
+  prediction: WeatherData
 }
 
 enum WeatherCode {

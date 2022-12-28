@@ -815,13 +815,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "ExchangeData",
-                "ofType": null
-              }
+              "kind": "OBJECT",
+              "name": "ExchangeData",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1246,13 +1242,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "WeatherData",
-                "ofType": null
-              }
+              "kind": "OBJECT",
+              "name": "WeatherData",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null

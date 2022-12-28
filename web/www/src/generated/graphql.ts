@@ -126,7 +126,7 @@ export enum EventVisibility {
 export type Exchange = {
   __typename?: "Exchange"
   id: Scalars["String"]
-  rates: ExchangeData
+  rates?: Maybe<ExchangeData>
 }
 
 export type ExchangeData = {
@@ -179,7 +179,7 @@ export type User = {
 export type Weather = {
   __typename?: "Weather"
   id: Scalars["String"]
-  prediction: WeatherData
+  prediction?: Maybe<WeatherData>
 }
 
 export enum WeatherCode {
@@ -324,7 +324,7 @@ export type DisplayQuery = {
     weather: {
       __typename?: "Weather"
       id: string
-      prediction: {
+      prediction?: {
         __typename?: "WeatherData"
         code: WeatherCode
         temperature: number
@@ -341,16 +341,16 @@ export type DisplayQuery = {
           time: string
           weatherCode: WeatherCode
         }>
-      }
+      } | null
     }
     exchange: {
       __typename?: "Exchange"
       id: string
-      rates: {
+      rates?: {
         __typename?: "ExchangeData"
         CZK: Array<number>
         days: Array<string>
-      }
+      } | null
     }
   }
 }

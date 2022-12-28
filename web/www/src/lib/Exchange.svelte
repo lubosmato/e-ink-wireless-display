@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    mdiApiOff,
     mdiArrowRight,
     mdiTriangleSmallDown,
     mdiTriangleSmallUp,
@@ -30,8 +31,8 @@
 
   export let exchange: Exchange
 
-  const min = Math.min(...exchange.rates.CZK)
-  const max = Math.max(...exchange.rates.CZK)
+  const min = Math.min(...(exchange.rates?.CZK ?? []))
+  const max = Math.max(...(exchange.rates?.CZK ?? []))
 
   const options = {
     plugins: {
@@ -54,7 +55,8 @@
   }
 
   const data = {
-    labels: exchange.rates.days.map((day) => format(new Date(day), "dd")),
+    labels:
+      exchange.rates?.days.map((day) => format(new Date(day), "dd")) ?? [],
     datasets: [
       {
         label: "My First dataset",
@@ -76,34 +78,38 @@
         pointHoverBorderWidth: 2,
         pointRadius: 1,
         pointHitRadius: 10,
-        data: exchange.rates.CZK,
+        data: exchange.rates?.CZK ?? [],
       },
     ],
   }
 </script>
 
 <div class="exchange">
-  <div class="rate">
-    1 <div class="currency">CHF</div>
-    <div class="arrow">
-      <Icon path={mdiArrowRight} />
-    </div>
-    <div class="value">{_.floor(exchange.rates.CZK.at(-1) ?? 0, 3)}</div>
-    <div class="currency">CZK</div>
-    <div class="minmax">
-      <div>
-        <Icon path={mdiTriangleSmallUp} />
-        {_.floor(max, 3)}
+  {#if exchange?.rates === null}
+    <Icon path={mdiApiOff} />
+  {:else}
+    <div class="rate">
+      1 <div class="currency">CHF</div>
+      <div class="arrow">
+        <Icon path={mdiArrowRight} />
       </div>
-      <div>
-        <Icon path={mdiTriangleSmallDown} />
-        {_.floor(min, 3)}
+      <div class="value">{_.floor(exchange.rates.CZK.at(-1), 3)}</div>
+      <div class="currency">CZK</div>
+      <div class="minmax">
+        <div>
+          <Icon path={mdiTriangleSmallUp} />
+          {_.floor(max, 3)}
+        </div>
+        <div>
+          <Icon path={mdiTriangleSmallDown} />
+          {_.floor(min, 3)}
+        </div>
       </div>
     </div>
-  </div>
-  <div class="history">
-    <Line {data} {options} />
-  </div>
+    <div class="history">
+      <Line {data} {options} />
+    </div>
+  {/if}
 </div>
 
 <style lang="sass">
