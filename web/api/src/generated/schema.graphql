@@ -93,7 +93,7 @@ type Exchange {
 }
 
 type ExchangeData {
-  CZK: [Float!]!
+  CZK: [Float]!
   days: [Date!]!
 }
 

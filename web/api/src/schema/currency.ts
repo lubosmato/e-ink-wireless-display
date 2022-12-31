@@ -11,7 +11,7 @@ const exchSymbols = ["CZK"] as const
 export type ExchaneData = {
   days: Date[]
 } & {
-  [k in typeof exchSymbols[number]]: number[]
+  [k in typeof exchSymbols[number]]: (number | null)[]
 }
 
 const ExchangeDataObject = builder
@@ -19,7 +19,11 @@ const ExchangeDataObject = builder
   .implement({
     fields: (t) => ({
       days: t.expose("days", { type: ["Date"] }),
-      CZK: t.exposeFloatList("CZK"),
+      CZK: t.field({
+        type: ["Float"],
+        nullable: { list: false, items: true },
+        resolve: (p) => p.CZK,
+      }),
     }),
   })
 
@@ -67,7 +71,7 @@ export const ExchangeObject = builder
             const result = await cachedQueryApi()
 
             return {
-              CZK: Object.values(result.rates).map((r) => r.CZK),
+              CZK: Object.values(result.rates).map((r) => r.CZK ?? null),
               days: Object.keys(result.rates).map((day) =>
                 parse(day, "yyyy-MM-dd", new Date()),
               ),

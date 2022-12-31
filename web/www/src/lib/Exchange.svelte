@@ -31,8 +31,11 @@
 
   export let exchange: Exchange
 
-  const min = Math.min(...(exchange.rates?.CZK ?? []))
-  const max = Math.max(...(exchange.rates?.CZK ?? []))
+  const czk = exchange.rates?.CZK.map((v) => (v === null ? NaN : v)) ?? []
+  const currentCzk = czk.filter((v) => !isNaN(v)).at(-1)
+
+  const min = Math.min(...czk.filter((v) => !isNaN(v)))
+  const max = Math.max(...czk.filter((v) => !isNaN(v)))
 
   const options = {
     animation: {
@@ -81,7 +84,7 @@
         pointHoverBorderWidth: 2,
         pointRadius: 1,
         pointHitRadius: 10,
-        data: exchange.rates?.CZK ?? [],
+        data: czk,
       },
     ],
   }
@@ -96,7 +99,7 @@
       <div class="arrow">
         <Icon path={mdiArrowRight} />
       </div>
-      <div class="value">{_.floor(exchange.rates.CZK.at(-1), 3)}</div>
+      <div class="value">{_.floor(currentCzk, 3)}</div>
       <div class="currency">CZK</div>
       <div class="minmax">
         <div>
