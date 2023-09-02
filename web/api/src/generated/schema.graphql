@@ -111,21 +111,9 @@ type Person {
   self: Boolean!
 }
 
-type Post {
-  content: String!
-  id: ID!
-  user: User!
-}
-
 type Query {
   display: Display!
   hello(name: String): String!
-  posts: [Post!]!
-}
-
-type User {
-  id: ID!
-  title: String!
 }
 
 type Weather {

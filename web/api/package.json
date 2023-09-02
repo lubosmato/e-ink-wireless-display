@@ -9,17 +9,12 @@
     "build": "tsc",
     "start": "node dist/src/index.js",
     "lint": "eslint --ext .ts --ext .json ./",
-    "prisma:migrate": "prisma migrate dev && yarn prisma-uml prisma/schema.prisma --output svg --file ./db.svg",
-    "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "echo 'nothing to do'"
   },
   "dependencies": {
-    "@googleapis/calendar": "^3.0.0",
+    "@googleapis/calendar": "^9.3.1",
     "@graphql-yoga/node": "^3.0.0",
     "@pothos/core": "^3.23.0",
-    "@pothos/plugin-prisma": "^3.35.8",
-    "@prisma/client": "4.7.1",
     "date-fns": "^2.29.3",
     "graphql": "^16.6.0",
     "graphql-scalars": "^1.20.1",
@@ -33,9 +28,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
-    "prisma": "4.7.1",
-    "prisma-uml": "^1.1.18",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.9.3"
+    "typescript": "^5.2.2"
   }
 }

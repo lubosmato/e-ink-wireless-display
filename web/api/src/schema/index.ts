@@ -1,5 +1,4 @@
 import "./hello"
-import "./post"
 import "./display"
 import "./weather"
 import "./currency"

@@ -1,4 +1,4 @@
-import { auth, calendar } from "@googleapis/calendar"
+import { auth, calendar, calendar_v3 } from "@googleapis/calendar"
 import { compareAsc, endOfDay, endOfWeek, startOfDay } from "date-fns"
 import { existsSync } from "fs"
 import { builder } from "../../builder"
@@ -39,7 +39,10 @@ export const CalendarObject = builder
         type: [EventOject],
         resolve: async () => {
           const client = await googleAuth.getClient()
-          const myCalendar = calendar({ auth: client, version: "v3" })
+          const myCalendar = calendar({
+            auth: client,
+            version: "v3",
+          } as calendar_v3.Options)
           const events = await myCalendar.events.list({
             timeMin: startOfDay(new Date()).toISOString(),
             timeMax: endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
