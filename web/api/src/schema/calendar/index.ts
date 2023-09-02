@@ -42,7 +42,7 @@ export const CalendarObject = builder
           const myCalendar = calendar({ auth: client, version: "v3" })
           const events = await myCalendar.events.list({
             timeMin: startOfDay(new Date()).toISOString(),
-            timeMax: endOfWeek(new Date()).toISOString(),
+            timeMax: endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
             calendarId: process.env.CALENDAR_ID,
           })
 
