@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@googleapis/calendar": "^9.3.1",
-    "@graphql-yoga/node": "^3.0.0",
+    "@graphql-yoga/node": "^3.9.1",
     "@pothos/core": "^3.23.0",
     "date-fns": "^2.29.3",
     "graphql": "^16.6.0",
