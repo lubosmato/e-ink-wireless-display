@@ -11,7 +11,7 @@ const exchSymbols = ["CZK"] as const
 export type ExchaneData = {
   days: Date[]
 } & {
-  [k in typeof exchSymbols[number]]: (number | null)[]
+  [k in (typeof exchSymbols)[number]]: (number | null)[]
 }
 
 const ExchangeDataObject = builder
@@ -46,7 +46,7 @@ const queryApi = async () => {
     end_date: string
     rates: {
       [day: string]: {
-        [k in typeof exchSymbols[number]]: number
+        [k in (typeof exchSymbols)[number]]: number
       }
     }
   }

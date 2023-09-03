@@ -56,5 +56,12 @@ query Display {
       }
     }
     image
+    nameDay {
+      id
+      nameDays {
+        today
+        tomorrow
+      }
+    }
   }
 }

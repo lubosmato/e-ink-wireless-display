@@ -39,7 +39,7 @@
     mdiWaterAlertOutline,
     mdiApiOff,
   } from "@mdi/js"
-  import { format, isPast } from "date-fns"
+  import { addHours, format, isPast, startOfHour } from "date-fns"
 
   const icons: {
     [k in WeatherCode]: string
@@ -84,10 +84,17 @@
       ? "rise"
       : "set"
     : "rise"
+
+  const inFutureHours = 4
+  const inFutureTime = startOfHour(addHours(new Date(), inFutureHours))
+
+  const future = weather.prediction?.hourly.find(
+    (s) => s.time === inFutureTime.toISOString(),
+  )
 </script>
 
 <div class="weather">
-  {#if weather.prediction === null}
+  {#if !weather.prediction}
     <div class="error">
       <Icon path={mdiApiOff} />
     </div>
@@ -116,6 +123,18 @@
     <div class="sun-time">
       {format(sunShould === "set" ? sunsetAt : sunriseAt, "H:mm")}
     </div>
+
+    {#if future}
+      <div class="future-time">{format(inFutureTime, "HH:mm")}</div>
+      <div class="future-temp">
+        <Icon size="1" path={icons[future.weatherCode]} color="black" />
+        <span>{future.temperature}</span><span class="celsius">°C</span>
+      </div>
+      <div class="future-prec">
+        {_.floor(future.precipitation, 0)} mm
+        <Icon path={mdiWaterOutline} />
+      </div>
+    {/if}
   {/if}
 </div>
 
@@ -126,10 +145,10 @@
 
     display: grid
     grid-template-columns: auto 0.75fr auto
-    grid-template-rows: 1fr 0.5fr
+    grid-template-rows: 1fr 0.5fr 0.5fr
     gap: 0
     grid-auto-flow: row
-    grid-template-areas: "icon temp sun" "icon precipitation sun-time"
+    grid-template-areas: "icon temp sun" "icon precipitation sun-time" "future-time future-temp future-prec"
     > * 
       display: flex
       align-items: center
@@ -137,11 +156,6 @@
 
   .error
     grid-area: temp
-
-  .celsius
-    font-size: 1.5rem
-    margin-top: -1.5rem
-    margin-left: 0.25em
 
   .icon
     grid-area: icon
@@ -151,6 +165,11 @@
     font-size: 3.5rem
     line-height: 1em
     font-weight: bold
+
+    & > .celsius
+      font-size: 1.5rem
+      margin-top: -1.5rem
+      margin-left: 0.25em
 
   .precipitation
     grid-area: precipitation
@@ -162,4 +181,30 @@
   .sun-time
     grid-area: sun-time
     font-size: 1.5rem
+
+  .future-time
+    grid-area: future-time
+    border-top: 1px solid var(--color-grey)
+    font-size: 1.5rem
+    color: var(--color-light-text)
+
+  .future-temp
+    grid-area: future-temp
+    border-top: 1px solid var(--color-grey)
+    font-size: 1.5rem
+    display: flex
+    gap: 0.5rem
+    
+    .celsius
+      font-size: 0.75rem
+      margin-top: -0.5rem
+
+  .future-prec
+    grid-area: future-prec
+    border-top: 1px solid var(--color-grey)
+    font-size: 1.5rem
+    display: flex
+    align-items: center
+    justify-content: center
+
 </style>

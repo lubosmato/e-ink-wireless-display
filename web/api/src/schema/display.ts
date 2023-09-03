@@ -3,12 +3,14 @@ import { builder } from "../builder"
 import { Calendar, CalendarObject } from "./calendar"
 import { Exchange, ExchangeObject } from "./currency"
 import { Weather, WeatherObject } from "./weather"
+import { NameDay, NameDayObject } from "./nameDays"
 
 type Display = {
   id: string
   calendar: Calendar
   weather: Weather
   exchange: Exchange
+  nameDay: NameDay
 }
 
 /*
@@ -26,6 +28,7 @@ export const DisplayObject = builder.objectRef<Display>("Display").implement({
       resolve: () =>
         readFileSync("./storage/image.jpg", { encoding: "base64" }),
     }),
+    nameDay: t.expose("nameDay", { type: NameDayObject }),
   }),
 })
 
@@ -44,6 +47,9 @@ builder.queryFields((t) => ({
         },
         exchange: {
           id: "exchange-id",
+        },
+        nameDay: {
+          id: "nameday-id",
         },
       }
     },

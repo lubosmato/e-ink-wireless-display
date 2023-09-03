@@ -52,6 +52,7 @@ export type Display = {
   exchange: Exchange
   id: Scalars["String"]
   image: Scalars["String"]
+  nameDay: NameDay
   weather: Weather
 }
 
@@ -131,7 +132,7 @@ export type Exchange = {
 
 export type ExchangeData = {
   __typename?: "ExchangeData"
-  CZK: Array<Scalars["Float"]>
+  CZK: Array<Maybe<Scalars["Float"]>>
   days: Array<Scalars["Date"]>
 }
 
@@ -144,6 +145,18 @@ export type MutationUploadWallpaperArgs = {
   image: Scalars["File"]
 }
 
+export type NameDay = {
+  __typename?: "NameDay"
+  id: Scalars["String"]
+  nameDays?: Maybe<NameDays>
+}
+
+export type NameDays = {
+  __typename?: "NameDays"
+  today: Scalars["String"]
+  tomorrow: Scalars["String"]
+}
+
 export type Person = {
   __typename?: "Person"
   displayName?: Maybe<Scalars["String"]>
@@ -152,28 +165,14 @@ export type Person = {
   self: Scalars["Boolean"]
 }
 
-export type Post = {
-  __typename?: "Post"
-  content: Scalars["String"]
-  id: Scalars["ID"]
-  user: User
-}
-
 export type Query = {
   __typename?: "Query"
   display: Display
   hello: Scalars["String"]
-  posts: Array<Post>
 }
 
 export type QueryHelloArgs = {
   name?: InputMaybe<Scalars["String"]>
-}
-
-export type User = {
-  __typename?: "User"
-  id: Scalars["ID"]
-  title: Scalars["String"]
 }
 
 export type Weather = {
@@ -348,8 +347,17 @@ export type DisplayQuery = {
       id: string
       rates?: {
         __typename?: "ExchangeData"
-        CZK: Array<number>
+        CZK: Array<number | null>
         days: Array<string>
+      } | null
+    }
+    nameDay: {
+      __typename?: "NameDay"
+      id: string
+      nameDays?: {
+        __typename?: "NameDays"
+        today: string
+        tomorrow: string
       } | null
     }
   }
@@ -424,6 +432,13 @@ export const DisplayDoc = gql`
         }
       }
       image
+      nameDay {
+        id
+        nameDays {
+          today
+          tomorrow
+        }
+      }
     }
   }
   ${EventFragmentDoc}

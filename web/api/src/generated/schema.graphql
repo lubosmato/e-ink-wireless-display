@@ -20,6 +20,7 @@ type Display {
   exchange: Exchange!
   id: String!
   image: String!
+  nameDay: NameDay!
   weather: Weather!
 }
 
@@ -102,6 +103,16 @@ scalar File
 
 type Mutation {
   uploadWallpaper(image: File!): Boolean!
+}
+
+type NameDay {
+  id: String!
+  nameDays: NameDays
+}
+
+type NameDays {
+  today: String!
+  tomorrow: String!
 }
 
 type Person {

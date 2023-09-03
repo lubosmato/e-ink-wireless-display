@@ -15,7 +15,7 @@
 <section>
   <div class="display-view">
     <div class="clock">
-      <Clock />
+      <Clock nameDay={data.displayQuery.data.display.nameDay} />
     </div>
     <div class="weather">
       <Weather weather={data.displayQuery.data.display.weather} />
@@ -49,7 +49,7 @@
 
       display: grid
       grid-template-columns: 1fr 1fr 1fr
-      grid-template-rows: 0.3fr 1fr 1fr
+      grid-template-rows: 0.4fr 1fr 1fr
       gap: 1rem
       grid-template-areas: "clock weather currency" "image image calendar" "image image calendar"
 
