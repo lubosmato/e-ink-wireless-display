@@ -70,7 +70,7 @@ export type EventAttendee = {
    * - "tentative" - The attendee has tentatively accepted the invitation.
    * - "accepted" - The attendee has accepted the invitation.  Warning: If you add an event using the values declined, tentative, or accepted, attendees with the "Add invitations to my calendar" setting set to "When I respond to invitation in email" won't see an event on their calendar unless they choose to change their invitation response in the event invitation email.
    */
-  responseStatus: (typeof AttendeeResponseStatuses)[number]
+  responseStatus: typeof AttendeeResponseStatuses[number]
   /**
    * Whether this entry represents the calendar on which this copy of the event appears. Read-only. The default is False.
    */
@@ -117,7 +117,7 @@ export type CalendarEvent = {
    * - "outOfOffice" - An out-of-office event.
    * - "focusTime" - A focus-time event.
    */
-  eventType: (typeof EventTypes)[number]
+  eventType: typeof EventTypes[number]
   /**
    * An absolute link to this event in the Google Calendar Web UI. Read-only.
    */
@@ -163,7 +163,7 @@ export type CalendarEvent = {
    * Deleted events are only guaranteed to have the id field populated.   On the organizer's calendar, cancelled events continue to expose event details (summary, location, etc.) so that they can be restored (undeleted). Similarly, the events to which the user was invited and that they manually removed continue to provide details. However, incremental sync requests with showDeleted set to false will not return these details.
    * If an event changes its organizer (for example via the move operation) and the original organizer is not on the attendee list, it will leave behind a cancelled event where only the id field is guaranteed to be populated.
    */
-  status: (typeof EventStatuses)[number]
+  status: typeof EventStatuses[number]
   /**
    * Title of the event.
    */
@@ -173,7 +173,7 @@ export type CalendarEvent = {
    * - "opaque" - Default value. The event does block time on the calendar. This is equivalent to setting Show me as to Busy in the Calendar UI.
    * - "transparent" - The event does not block time on the calendar. This is equivalent to setting Show me as to Available in the Calendar UI.
    */
-  transparency: (typeof EventTransparencies)[number] | null
+  transparency: typeof EventTransparencies[number] | null
   /**
    * Last modification time of the event (as a RFC3339 timestamp). Read-only.
    */
@@ -185,7 +185,7 @@ export type CalendarEvent = {
    * - "private" - The event is private and only event attendees may view event details.
    * - "confidential" - The event is private. This value is provided for compatibility reasons.
    */
-  visibility: (typeof EventVisibilities)[number] | null
+  visibility: typeof EventVisibilities[number] | null
 }
 
 const PersonObject = builder

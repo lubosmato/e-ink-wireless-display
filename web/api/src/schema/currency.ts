@@ -11,7 +11,7 @@ const exchSymbols = ["CZK"] as const
 export type ExchaneData = {
   days: Date[]
 } & {
-  [k in (typeof exchSymbols)[number]]: (number | null)[]
+  [k in typeof exchSymbols[number]]: (number | null)[]
 }
 
 const ExchangeDataObject = builder
@@ -28,14 +28,22 @@ const ExchangeDataObject = builder
   })
 
 const queryApi = async () => {
-  const baseUrl = "https://api.exchangerate.host/timeseries"
+  const baseUrl = "https://api.apilayer.com/exchangerates_data/timeseries"
   const start = format(subDays(new Date(), 30), "yyyy-MM-dd")
   const end = format(new Date(), "yyyy-MM-dd")
+
+  const headers = new Headers()
+  headers.append("apikey", process.env.EXCHANGE_API_KEY ?? "")
 
   const query = await fetch(
     `${baseUrl}?start_date=${start}&end_date=${end}&symbols=${exchSymbols.join(
       ",",
     )}&base=CHF`,
+    {
+      method: "GET",
+      redirect: "follow",
+      headers,
+    },
   )
 
   type ExchangeRateResult = {
@@ -46,7 +54,7 @@ const queryApi = async () => {
     end_date: string
     rates: {
       [day: string]: {
-        [k in (typeof exchSymbols)[number]]: number
+        [k in typeof exchSymbols[number]]: number
       }
     }
   }

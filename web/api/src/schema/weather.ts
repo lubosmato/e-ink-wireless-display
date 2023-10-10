@@ -114,7 +114,7 @@ enum WeatherCode {
 
 const WeatherCodeDescriptions: {
   [K in keyof typeof WeatherCode]: {
-    value: (typeof WeatherCode)[K]
+    value: typeof WeatherCode[K]
     description: string
   }
 } = {
