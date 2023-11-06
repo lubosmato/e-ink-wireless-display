@@ -27,15 +27,15 @@ type Display {
 type Event {
   attendees: [EventAttendee!]!
   colorId: String
-  created: Date!
-  creator: Person!
+  created: Date
+  creator: Person
   description: String
   end: Date
-  eventType: EventType!
+  eventType: EventType
   htmlLink: String!
   id: String!
   location: String
-  organizer: Person!
+  organizer: Person
   reminders: EventReminders!
   start: Date
   status: EventStatus!

@@ -89,16 +89,19 @@ export type CalendarEvent = {
   /**
    * Creation time of the event (as a RFC3339 timestamp). Read-only.
    */
-  created: Date
+  created: Date | null | undefined
   /**
    * The creator of the event. Read-only.
    */
-  creator: {
-    displayName: string | null
-    email: string | null
-    id: string | null
-    self: boolean
-  }
+  creator:
+    | {
+        displayName: string | null
+        email: string | null
+        id: string | null
+        self: boolean
+      }
+    | null
+    | undefined
   /**
    * Description of the event. Can contain HTML. Optional.
    */
@@ -117,7 +120,7 @@ export type CalendarEvent = {
    * - "outOfOffice" - An out-of-office event.
    * - "focusTime" - A focus-time event.
    */
-  eventType: typeof EventTypes[number]
+  eventType: typeof EventTypes[number] | null | undefined
   /**
    * An absolute link to this event in the Google Calendar Web UI. Read-only.
    */
@@ -189,13 +192,13 @@ export type CalendarEvent = {
 }
 
 const PersonObject = builder
-  .objectRef<CalendarEvent["creator"]>("Person")
+  .objectRef<NonNullable<CalendarEvent["creator"]>>("Person")
   .implement({
     fields: (t) => ({
       displayName: t.exposeString("displayName", { nullable: true }),
       email: t.exposeString("email", { nullable: true }),
       id: t.exposeString("id", { nullable: true }),
-      self: t.field({ type: "Boolean", resolve: (p) => p.self ?? false }),
+      self: t.field({ type: "Boolean", resolve: (p) => p?.self ?? false }),
     }),
   })
 
@@ -271,15 +274,15 @@ export const EventOject = builder.objectRef<CalendarEvent>("Event").implement({
     id: t.exposeString("id"),
     summary: t.exposeString("summary", { nullable: true }),
     description: t.exposeString("description", { nullable: true }),
-    eventType: t.expose("eventType", { type: EventType }),
+    eventType: t.expose("eventType", { type: EventType, nullable: true }),
     status: t.expose("status", { type: EventStatus }),
     attendees: t.field({
       type: [EventAttendeeObject],
       resolve: (e) => e.attendees ?? [],
     }),
     colorId: t.exposeString("colorId", { nullable: true }),
-    created: t.expose("created", { type: "Date" }),
-    creator: t.expose("creator", { type: PersonObject }),
+    created: t.expose("created", { type: "Date", nullable: true }),
+    creator: t.expose("creator", { type: PersonObject, nullable: true }),
     end: t.field({
       type: "Date",
       resolve: (e) => getDate(e.end),
@@ -287,7 +290,7 @@ export const EventOject = builder.objectRef<CalendarEvent>("Event").implement({
     }),
     htmlLink: t.exposeString("htmlLink"),
     location: t.exposeString("location", { nullable: true }),
-    organizer: t.expose("organizer", { type: PersonObject }),
+    organizer: t.expose("organizer", { type: PersonObject, nullable: true }),
     reminders: t.expose("reminders", { type: RemindersObject }),
     start: t.field({
       type: "Date",
