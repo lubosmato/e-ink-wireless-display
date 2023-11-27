@@ -51,9 +51,7 @@ export const CalendarObject = builder
 
           // TODO remove 'as unknown' - don't be lazy
           const items = (events.data.items ?? []) as unknown as CalendarEvent[]
-          return sortByStartDate(
-            items.filter((i) => i.start?.date).filter((i) => i.summary),
-          )
+          return sortByStartDate(items.filter((i) => getDate(i.start) != null))
         },
       }),
     }),
